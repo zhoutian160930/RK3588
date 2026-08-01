@@ -22,7 +22,7 @@ const std::string LABEL_PATH = "model/coco_80_labels_list.txt";
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "Usage: " << argv[0] << " <image_or_video_or_dir> [yolo_model] [sam_encoder] [sam_decoder] [label_path] [--out-dir OUT_DIR] [--yolo-threads N] [--sam-threads M]" << std::endl;
+        std::cout << "Usage: " << argv[0] << " <image_or_video_or_dir> [yolo_model] [sam_encoder] [sam_decoder] [label_path] [--out-dir OUT_DIR] [--yolo-threads N] [--sam-threads M] [--no-sam]" << std::endl;
         return -1;
     }
 
@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
     std::string out_dir = "outputs";
     int yolo_threads = 3;
     int sam_threads = 3;
+    bool use_sam = true;
 
     int positional_arg_index = 0;
     for (int i = 2; i < argc; ++i) {
@@ -44,6 +45,8 @@ int main(int argc, char **argv) {
             yolo_threads = std::atoi(argv[++i]);
         } else if (arg == "--sam-threads" && i + 1 < argc) {
             sam_threads = std::atoi(argv[++i]);
+        } else if (arg == "--no-sam") {
+            use_sam = false;
         } else if (arg.rfind("--", 0) == 0) {
             std::cerr << "Warning: Unknown option " << arg << std::endl;
         } else {
@@ -59,16 +62,24 @@ int main(int argc, char **argv) {
     }
     std::filesystem::create_directories(out_dir);
 
+    std::string result_suffix = use_sam ? "_sam.jpg" : "_det.jpg";
+    std::string video_prefix = use_sam ? "sam_out_" : "det_out_";
+
     // ===================== 【1】所有模型加载/初始化都在这里，这部分耗时完全剔除 =====================
     printf("Initializing YOLOv8 Pool with model: %s, threads: %d\n", yolo_path.c_str(), yolo_threads);
     printf("Using label file: %s\n", label_path.c_str());
     RknnPool yolo_pool(yolo_path, yolo_threads, label_path);
     
-    printf("Initializing MobileSAM Pool with encoder: %s, decoder: %s, threads: %d\n", sam_enc_path.c_str(), sam_dec_path.c_str(), sam_threads);
-    MobileSamPool sam_pool(sam_enc_path, sam_dec_path, sam_threads);
-    if (sam_pool.Init() != 0) {
-        std::cerr << "Failed to init MobileSAM pool" << std::endl;
-        return -1;
+    std::unique_ptr<MobileSamPool> sam_pool;
+    if (use_sam) {
+        printf("Initializing MobileSAM Pool with encoder: %s, decoder: %s, threads: %d\n", sam_enc_path.c_str(), sam_dec_path.c_str(), sam_threads);
+        sam_pool = std::make_unique<MobileSamPool>(sam_enc_path, sam_dec_path, sam_threads);
+        if (sam_pool->Init() != 0) {
+            std::cerr << "Failed to init MobileSAM pool" << std::endl;
+            return -1;
+        }
+    } else {
+        printf("SAM post-processing is DISABLED (--no-sam). Running YOLO detection only.\n");
     }
 
     cv::Mat img = cv::imread(input_path);
@@ -94,7 +105,7 @@ int main(int argc, char **argv) {
     if (is_image) {
         auto src = std::make_shared<cv::Mat>(img.clone());
         std::string base = std::filesystem::path(input_path).stem().string();
-        std::string out_name = (std::filesystem::path(out_dir) / (base + "_sam.jpg")).string();
+        std::string out_name = (std::filesystem::path(out_dir) / (base + result_suffix)).string();
         ImageProcess image_process(src->cols, src->rows, 640);
         yolo_pool.AddInferenceTask(src, image_process, out_name);
         frame_count++;
@@ -114,7 +125,7 @@ int main(int argc, char **argv) {
             if (im.empty()) continue;
             auto src = std::make_shared<cv::Mat>(im);
             std::string base = p.stem().string();
-            std::string out_name = (std::filesystem::path(out_dir) / (base + "_sam.jpg")).string();
+            std::string out_name = (std::filesystem::path(out_dir) / (base + result_suffix)).string();
             ImageProcess image_process(src->cols, src->rows, 640);
             yolo_pool.AddInferenceTask(src, image_process, out_name);
             frame_count++;
@@ -131,7 +142,7 @@ int main(int argc, char **argv) {
             if (!frame.empty()) {
                 auto src = std::make_shared<cv::Mat>(frame.clone());
                 static int seq = 0;
-                std::string out_name = (std::filesystem::path(out_dir) / ("sam_out_" + std::to_string(seq++) + ".jpg")).string();
+                std::string out_name = (std::filesystem::path(out_dir) / (video_prefix + std::to_string(seq++) + ".jpg")).string();
                 ImageProcess image_process(src->cols, src->rows, 640);
                 yolo_pool.AddInferenceTask(src, image_process, out_name);
                 frame_count++;
@@ -140,34 +151,44 @@ int main(int argc, char **argv) {
         
         YoloResult yolo_res = yolo_pool.GetImageResultFromQueue();
         if (yolo_res.img) {
-            std::vector<mobilesam_box> sam_boxes;
-            
-            for (int i = 0; i < yolo_res.results.count; i++) {
-                object_detect_result& det = yolo_res.results.results[i];
-                mobilesam_box box;
-                box.x1 = det.box.left;
-                box.y1 = det.box.top;
-                box.x2 = det.box.right;
-                box.y2 = det.box.bottom;
-                sam_boxes.push_back(box);
-            }
-
-            std::string out_name = yolo_res.tag.empty() ? (std::filesystem::path(out_dir) / "sam_out.jpg").string() : yolo_res.tag;
-            printf("Saving result to: %s\n", out_name.c_str());
-            sam_pool.AddInferenceTask(*yolo_res.img, out_name, sam_boxes);
-            sam_submission_count++;
+            std::string out_name = yolo_res.tag.empty()
+                ? (std::filesystem::path(out_dir) / (use_sam ? "sam_out.jpg" : "det_out.jpg")).string()
+                : yolo_res.tag;
             yolo_received_count++;
+
+            if (use_sam) {
+                std::vector<mobilesam_box> sam_boxes;
+                for (int i = 0; i < yolo_res.results.count; i++) {
+                    object_detect_result& det = yolo_res.results.results[i];
+                    mobilesam_box box;
+                    box.x1 = det.box.left;
+                    box.y1 = det.box.top;
+                    box.x2 = det.box.right;
+                    box.y2 = det.box.bottom;
+                    sam_boxes.push_back(box);
+                }
+                printf("Saving SAM result to: %s\n", out_name.c_str());
+                sam_pool->AddInferenceTask(*yolo_res.img, out_name, sam_boxes);
+                sam_submission_count++;
+            } else {
+                cv::Mat out_img = yolo_res.img->clone();
+                ImageProcess draw_process(out_img.cols, out_img.rows, 640);
+                draw_process.ImagePostProcess(out_img, yolo_res.results);
+                printf("Saving detection result to: %s\n", out_name.c_str());
+                cv::imwrite(out_name, out_img);
+            }
         }
         
+        bool sam_done = !use_sam || (sam_pool->GetProcessedCount() >= sam_submission_count);
+
         if (is_image || is_dir) {
-            if (yolo_received_count >= frame_count &&
-                sam_pool.GetProcessedCount() >= sam_submission_count) {
+            if (yolo_received_count >= frame_count && sam_done) {
                 break;
             }
             usleep(10000);
         } else {
             if (frame.empty() && yolo_pool.GetTasksSize() == 0) {
-                if (sam_pool.GetProcessedCount() >= sam_submission_count) {
+                if (sam_done) {
                     break;
                 }
                 usleep(10000);
@@ -190,9 +211,9 @@ int main(int argc, char **argv) {
 
     long long yolo_pre_us = yolo_pool.GetYoloPreprocessTimeUs();
     long long yolo_infer_us = yolo_pool.GetYoloInferenceTimeUs();
-    long long sam_pre_us = sam_pool.GetSamPreprocessTimeUs();
-    long long sam_infer_us = sam_pool.GetSamInferenceTimeUs();
-    long long sam_post_us = sam_pool.GetSamPostprocessTimeUs();
+    long long sam_pre_us = use_sam ? sam_pool->GetSamPreprocessTimeUs() : 0;
+    long long sam_infer_us = use_sam ? sam_pool->GetSamInferenceTimeUs() : 0;
+    long long sam_post_us = use_sam ? sam_pool->GetSamPostprocessTimeUs() : 0;
     double yolo_pre_ms = yolo_pre_us / 1000.0;
     double yolo_infer_ms = yolo_infer_us / 1000.0;
     double sam_pre_ms = sam_pre_us / 1000.0;
