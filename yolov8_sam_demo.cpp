@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 #include <opencv2/opencv.hpp>
 #include <unistd.h>
 #include "rknn_pool.h"
@@ -10,6 +11,10 @@
 #include <chrono>   
 #include <algorithm>
 
+#if WITH_UI
+#include "ui_app.h"
+#include "app_config.h"
+#endif
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds Milliseconds;
 // ===== 新增：微秒类型，统计耗时更精准，可选保留 =====
@@ -22,7 +27,7 @@ const std::string LABEL_PATH = "model/coco_80_labels_list.txt";
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        std::cout << "Usage: " << argv[0] << " <image_or_video_or_dir> [yolo_model] [sam_encoder] [sam_decoder] [label_path] [--out-dir OUT_DIR] [--yolo-threads N] [--sam-threads M] [--no-sam]" << std::endl;
+        std::cout << "Usage: " << argv[0] << " <image_or_video_or_dir> [yolo_model] [sam_encoder] [sam_decoder] [label_path] [--out-dir OUT_DIR] [--yolo-threads N] [--sam-threads M] [--no-sam] [--headless]" << std::endl;
         return -1;
     }
 
@@ -35,6 +40,7 @@ int main(int argc, char **argv) {
     int yolo_threads = 3;
     int sam_threads = 3;
     bool use_sam = true;
+    int ui_flag = -1; /* -1: 自动, 0: 强制无头, 1: 强制 UI */
 
     int positional_arg_index = 0;
     for (int i = 2; i < argc; ++i) {
@@ -47,6 +53,10 @@ int main(int argc, char **argv) {
             sam_threads = std::atoi(argv[++i]);
         } else if (arg == "--no-sam") {
             use_sam = false;
+        } else if (arg == "--headless") {
+            ui_flag = 0;
+        } else if (arg == "--ui") {
+            ui_flag = 1;
         } else if (arg.rfind("--", 0) == 0) {
             std::cerr << "Warning: Unknown option " << arg << std::endl;
         } else {
@@ -64,6 +74,25 @@ int main(int argc, char **argv) {
 
     std::string result_suffix = use_sam ? "_sam.jpg" : "_det.jpg";
     std::string video_prefix = use_sam ? "sam_out_" : "det_out_";
+
+#if WITH_UI
+    // UI 模式：默认根据 DISPLAY 自动判断(ssh -X 有 DISPLAY 则 UI，否则无头)；
+    // 可用 --ui / --headless 强制覆盖。loop.sh 等无 DISPLAY 场景仍走无头。
+    bool want_ui = (ui_flag >= 0) ? (ui_flag == 1) : (getenv("DISPLAY") != nullptr);
+    if (want_ui) {
+        AppConfig cfg;
+        cfg.input_path = input_path;
+        cfg.yolo_path = yolo_path;
+        cfg.sam_enc_path = sam_enc_path;
+        cfg.sam_dec_path = sam_dec_path;
+        cfg.label_path = label_path;
+        cfg.out_dir = out_dir;
+        cfg.yolo_threads = yolo_threads;
+        cfg.sam_threads = sam_threads;
+        cfg.use_sam = use_sam;
+        return run_ui_mode(cfg);
+    }
+#endif
 
     // ===================== 【1】所有模型加载/初始化都在这里，这部分耗时完全剔除 =====================
     printf("Initializing YOLOv8 Pool with model: %s, threads: %d\n", yolo_path.c_str(), yolo_threads);
