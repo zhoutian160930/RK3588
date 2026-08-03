@@ -178,18 +178,20 @@ void worker_fn() {
   }
 
   int submitted = 0;
-  auto submit = [&](std::shared_ptr<cv::Mat> src) {
-    ImageProcess ip(src->cols, src->rows, 640);
-    yolo.AddInferenceTask(src, ip, "");
-    submitted++;
-  };
-  auto drain = [&] {
+  auto stopped = [&] { return g_stop.load(); };
+
+  /* 取一个结果，画框后 push 到 bus，并等 UI 把它取走显示。
+   * 这是"推理一帧展示一帧"的关键：每帧必须被 UI pop 走，才继续下一帧。 */
+  auto drain_one = [&] {
     YoloResult r = yolo.GetImageResultFromQueue();
-    if (!r.img) return;
+    if (!r.img) return false;
     cv::Mat out = r.img->clone();
     ImageProcess ip(out.cols, out.rows, 640);
     ip.ImagePostProcess(out, r.results);
     g_bus.push(out);
+    fprintf(stderr, "[worker] push frame %d\n", g_proc_count.load());
+    /* 等 UI 取走这一帧（最多 ~1s 保底，避免 UI 卡死拖死 worker） */
+    for (int i = 0; i < 333 && g_bus.is_pending() && !stopped(); ++i) usleep(3000);
     if (sam) {
       std::vector<mobilesam_box> boxes;
       for (int i = 0; i < r.results.count; i++) {
@@ -202,15 +204,24 @@ void worker_fn() {
       sam->AddInferenceTask(*r.img, nm, boxes);
     }
     g_proc_count++;
+    return true;
   };
-  auto stopped = [&] { return g_stop.load(); };
 
-  if (is_image) {
-    submit(std::make_shared<cv::Mat>(img0.clone()));
+  /* 严格串行：提交一张 -> 等它推理完并显示 -> 才提交下一张。
+   * 这样保证"推理一张就展示一张"，而不是全部推理完再一起出。 */
+  auto process_one = [&](std::shared_ptr<cv::Mat> src) {
+    ImageProcess ip(src->cols, src->rows, 640);
+    yolo.AddInferenceTask(src, ip, "");
+    submitted++;
+    /* 等这一帧的结果出现并显示完 */
     while (g_proc_count.load() < submitted && !stopped()) {
-      drain();
+      drain_one();
       usleep(2000);
     }
+  };
+
+  if (is_image) {
+    process_one(std::make_shared<cv::Mat>(img0.clone()));
   } else if (is_dir) {
     std::vector<fs::path> files;
     for (auto &p : fs::directory_iterator(cfg.input_path)) {
@@ -225,33 +236,14 @@ void worker_fn() {
       if (stopped()) break;
       cv::Mat im = cv::imread(p.string());
       if (im.empty()) continue;
-      submit(std::make_shared<cv::Mat>(im));
-      while (yolo.GetTasksSize() > cfg.yolo_threads * 2) {
-        drain();
-        if (stopped()) break;
-        usleep(5000);
-      }
-    }
-    while (g_proc_count.load() < submitted && !stopped()) {
-      drain();
-      usleep(2000);
+      process_one(std::make_shared<cv::Mat>(im));
     }
   } else {
-    bool eof = false;
     while (!stopped()) {
-      if (!eof) {
-        cv::Mat frame;
-        cap >> frame;
-        if (frame.empty())
-          eof = true;
-        else
-          submit(std::make_shared<cv::Mat>(frame.clone()));
-      }
-      drain();
-      if (eof && yolo.GetTasksSize() == 0 && g_proc_count.load() >= submitted)
-        break;
-      if (yolo.GetTasksSize() > cfg.yolo_threads * 2) usleep(5000);
-      usleep(2000);
+      cv::Mat frame;
+      cap >> frame;
+      if (frame.empty()) break;
+      process_one(std::make_shared<cv::Mat>(frame.clone()));
     }
   }
 
@@ -519,11 +511,15 @@ int run_ui_mode(const AppConfig &cfg) {
 
   apply_resolution();
 
-  /* 主循环：永不因推理完成退出，只在 退出按钮 时结束 */
+  /* 主循环：永不因推理完成退出，只在 退出按钮 时结束。
+   * 顺序：先 pop+写canvas+invalidate，再 ui_tick 渲染——保证取到的帧当轮就画出。 */
   while (true) {
-    ui_tick();
     cv::Mat frame;
-    if (g_bus.pop(frame)) ui_canvas_set_bgr(frame);
+    if (g_bus.pop(frame)) {
+      ui_canvas_set_bgr(frame);
+      fprintf(stderr, "[ui] pop+display frame\n");
+    }
+    ui_tick();
     check_worker_done();
     usleep(5000);
   }

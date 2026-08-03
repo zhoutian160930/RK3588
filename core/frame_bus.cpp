@@ -4,6 +4,7 @@ void FrameBus::push(const cv::Mat &frame) {
   std::lock_guard<std::mutex> lk(mtx_);
   frame.copyTo(latest_);
   has_new_ = true;
+  pending_ = true;
 }
 
 bool FrameBus::pop(cv::Mat &out) {
@@ -11,6 +12,7 @@ bool FrameBus::pop(cv::Mat &out) {
   if (!has_new_) return false;
   latest_.copyTo(out);
   has_new_ = false;
+  pending_ = false;
   return true;
 }
 
@@ -24,9 +26,15 @@ bool FrameBus::is_done_and_drained() {
   return done_ && !has_new_;
 }
 
+bool FrameBus::is_pending() {
+  std::lock_guard<std::mutex> lk(mtx_);
+  return pending_;
+}
+
 void FrameBus::reset() {
   std::lock_guard<std::mutex> lk(mtx_);
   latest_.release();
   has_new_ = false;
   done_ = false;
+  pending_ = false;
 }

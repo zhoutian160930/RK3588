@@ -18,6 +18,9 @@ class FrameBus {
   /* UI 线程判断管线是否已结束（且无新帧）。 */
   bool is_done_and_drained();
 
+  /* 是否有"已推入但尚未被 UI 取走"的帧（worker 据此节奏化推送）。 */
+  bool is_pending();
+
   /* 重置信箱状态（新一轮推理前调用）。 */
   void reset();
 
@@ -25,5 +28,6 @@ class FrameBus {
   cv::Mat latest_;
   bool has_new_ = false;
   bool done_ = false;
+  bool pending_ = false; /* 已推入但 UI 尚未 pop */
   std::mutex mtx_;
 };
