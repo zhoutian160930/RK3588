@@ -57,6 +57,9 @@ lv_obj_t *g_line_left = nullptr;
 lv_obj_t *g_line_right = nullptr;
 std::atomic<int> g_target_count{10};          /* 目标物料数(UI 与 worker 共享) */
 
+FramePayload g_last_payload;                  /* 最近一帧(用于拖线时实时重判) */
+bool g_has_last = false;
+
 FrameBus g_bus;
 std::thread g_worker;
 std::atomic<bool> g_stop{false};
@@ -75,7 +78,7 @@ lv_obj_t *g_start_btn, *g_stop_btn;
 lv_obj_t *g_res_label;
 lv_obj_t *g_quit_btn;
 lv_obj_t *g_spin;          /* YOLO 线程 */
-lv_obj_t *g_target_spin;   /* 目标物料数 */
+lv_obj_t *g_target_label;  /* 目标物料数(显示值) */
 
 std::string base_name(const std::string &p) {
   size_t s = p.find_last_of('/');
@@ -145,6 +148,18 @@ void open_samenc_browser(lv_event_t *) {
 }
 void open_samdec_browser(lv_event_t *) {
   ui_filebrowser_open("/home/ubuntu/lvgl", ".rknn", 0, on_fb_samdec, NULL);
+}
+
+/* 预览标定：选一张图 -> 显示出来(含检测框) -> 拖竖线精确标定 */
+void on_start(lv_event_t *);  /* 前置声明 */
+void on_fb_preview(const char *path, void *) {
+  g_input_path = trim_path(path);
+  SPDLOG_INFO("preview image: {}", g_input_path);
+  on_start(nullptr);  /* 复用单图推理流程：处理这一帧并显示 */
+}
+void open_preview_browser(lv_event_t *) {
+  ui_filebrowser_open("/home/ubuntu/lvgl", ".jpg,.jpeg,.png,.bmp", 0,
+                      on_fb_preview, NULL);
 }
 
 /* ---- 满料判定（UI 标签与 worker 画图共用） ---- */
@@ -677,7 +692,7 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_obj_align(spin, LV_ALIGN_RIGHT_MID, 0, 0);
   g_spin = spin;
 
-  /* 目标物料数 spinbox（满料判定阈值） */
+  /* 目标物料数：- [值] +  (纯鼠标点击可调，不依赖编码器/滚轮) */
   lv_obj_t *res_row = lv_obj_create(panel);
   lv_obj_set_size(res_row, PANEL_W - 20, 44);
   lv_obj_set_style_pad_all(res_row, 2, 0);
@@ -687,19 +702,51 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_obj_t *tl2 = lv_label_create(res_row);
   lv_label_set_text(tl2, "目标物料数");
   lv_obj_align(tl2, LV_ALIGN_LEFT_MID, 0, 0);
-  lv_obj_t *tspin = lv_spinbox_create(res_row);
-  lv_spinbox_set_range(tspin, 1, 999);
-  lv_spinbox_set_digit_format(tspin, 2, 0);
-  lv_spinbox_set_value(tspin, g_target_count.load());
-  lv_obj_align(tspin, LV_ALIGN_RIGHT_MID, 0, 0);
-  g_target_spin = tspin;
+
+  g_target_label = lv_label_create(res_row);
+  char tbuf[16];
+  snprintf(tbuf, sizeof(tbuf), "%d", g_target_count.load());
+  lv_label_set_text(g_target_label, tbuf);
+  lv_obj_align(g_target_label, LV_ALIGN_RIGHT_MID, -84, 0);
+
+  auto refresh_tgt = []() {
+    char b[16];
+    snprintf(b, sizeof(b), "%d", g_target_count.load());
+    if (g_target_label) lv_label_set_text(g_target_label, b);
+  };
+  lv_obj_t *minus_btn = lv_btn_create(res_row);
+  lv_obj_set_size(minus_btn, 36, 34);
+  lv_obj_align(minus_btn, LV_ALIGN_RIGHT_MID, -44, 0);
+  lv_obj_t *ml = lv_label_create(minus_btn);
+  lv_label_set_text(ml, "-");
+  lv_obj_center(ml);
   lv_obj_add_event_cb(
-      tspin,
-      [](lv_event_t *e) {
-        lv_obj_t *sp = (lv_obj_t *)lv_event_get_target(e);
-        g_target_count.store(lv_spinbox_get_value(sp));
+      minus_btn,
+      [](lv_event_t *) {
+        int v = g_target_count.load();
+        if (v > 1) g_target_count.store(v - 1);
+        char b[16];
+        snprintf(b, sizeof(b), "%d", g_target_count.load());
+        if (g_target_label) lv_label_set_text(g_target_label, b);
       },
-      LV_EVENT_VALUE_CHANGED, NULL);
+      LV_EVENT_CLICKED, NULL);
+  lv_obj_t *plus_btn = lv_btn_create(res_row);
+  lv_obj_set_size(plus_btn, 36, 34);
+  lv_obj_align(plus_btn, LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_obj_t *pl = lv_label_create(plus_btn);
+  lv_label_set_text(pl, "+");
+  lv_obj_center(pl);
+  lv_obj_add_event_cb(
+      plus_btn,
+      [](lv_event_t *) {
+        int v = g_target_count.load();
+        if (v < 999) g_target_count.store(v + 1);
+        char b[16];
+        snprintf(b, sizeof(b), "%d", g_target_count.load());
+        if (g_target_label) lv_label_set_text(g_target_label, b);
+      },
+      LV_EVENT_CLICKED, NULL);
+  (void)refresh_tgt;
 
   /* 开始 / 停止 */
   lv_obj_t *btn_row = lv_obj_create(panel);
@@ -707,17 +754,26 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_obj_set_style_pad_all(btn_row, 2, 0);
   lv_obj_set_style_border_width(btn_row, 0, 0);
   lv_obj_clear_flag(btn_row, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_flex_flow(btn_row, LV_FLEX_FLOW_ROW);
+  lv_obj_set_style_pad_column(btn_row, 6, 0);
   lv_obj_align_to(btn_row, res_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
+
+  /* 预览标定：选一张图显示，便于拖线标定 */
+  lv_obj_t *prev_btn = lv_btn_create(btn_row);
+  lv_obj_set_size(prev_btn, 90, 40);
+  lv_obj_t *plb = lv_label_create(prev_btn);
+  lv_label_set_text(plb, "预览");
+  lv_obj_center(plb);
+  lv_obj_add_event_cb(prev_btn, open_preview_browser, LV_EVENT_CLICKED, NULL);
+
   g_start_btn = lv_btn_create(btn_row);
-  lv_obj_set_size(g_start_btn, 110, 40);
-  lv_obj_align(g_start_btn, LV_ALIGN_LEFT_MID, 0, 0);
+  lv_obj_set_size(g_start_btn, 90, 40);
   lv_obj_t *slb = lv_label_create(g_start_btn);
   lv_label_set_text(slb, "开始");
   lv_obj_center(slb);
   lv_obj_add_event_cb(g_start_btn, on_start, LV_EVENT_CLICKED, NULL);
   g_stop_btn = lv_btn_create(btn_row);
-  lv_obj_set_size(g_stop_btn, 110, 40);
-  lv_obj_align(g_stop_btn, LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_obj_set_size(g_stop_btn, 90, 40);
   lv_obj_t *spb = lv_label_create(g_stop_btn);
   lv_label_set_text(spb, "停止");
   lv_obj_center(spb);
@@ -741,13 +797,15 @@ int run_ui_mode(const AppConfig &cfg) {
   apply_resolution();
 
   /* 主循环：永不因推理完成退出，只在 退出按钮 时结束。
-   * 顺序：先 pop+显示+判定，再 ui_tick 渲染。 */
+   * 存最近一帧，每轮用当前竖线/目标值重判 → 拖线时判定实时更新。 */
   while (true) {
     FramePayload payload;
     if (g_bus.pop(payload)) {
+      g_last_payload = payload;
+      g_has_last = true;
       ui_canvas_set_bgr(payload.frame);
-      run_judgment(payload);
     }
+    if (g_has_last) run_judgment(g_last_payload);
     ui_tick();
     check_worker_done();
     usleep(5000);
