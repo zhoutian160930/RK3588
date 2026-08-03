@@ -60,6 +60,19 @@ std::string base_name(const std::string &p) {
   return (s == std::string::npos) ? p : p.substr(s + 1);
 }
 
+/* 去除路径尾部空白/斜杠等隐藏字符 */
+std::string trim_path(const std::string &p) {
+  std::string r = p;
+  while (!r.empty()) {
+    char c = r.back();
+    if (c == '/' || c == ' ' || c == '\n' || c == '\r' || c == '\t')
+      r.pop_back();
+    else
+      break;
+  }
+  return r;
+}
+
 void update_status_text() {
   const char *st = "待机";
   switch (g_state.load()) {
@@ -75,23 +88,23 @@ void update_status_text() {
 
 /* ---- 文件浏览器回调 ---- */
 void on_fb_input(const char *path, void *) {
-  g_input_path = path;
+  g_input_path = trim_path(path);
   lv_label_set_text(g_input_label, base_name(path).c_str());
 }
 void on_fb_yolo(const char *path, void *) {
-  g_yolo_path = path;
+  g_yolo_path = trim_path(path);
   lv_label_set_text(g_yolo_label, base_name(path).c_str());
 }
 void on_fb_label(const char *path, void *) {
-  g_label_path = path;
+  g_label_path = trim_path(path);
   lv_label_set_text(g_label_label, base_name(path).c_str());
 }
 void on_fb_samenc(const char *path, void *) {
-  g_sam_enc_path = path;
+  g_sam_enc_path = trim_path(path);
   lv_label_set_text(g_samenc_label, base_name(path).c_str());
 }
 void on_fb_samdec(const char *path, void *) {
-  g_sam_dec_path = path;
+  g_sam_dec_path = trim_path(path);
   lv_label_set_text(g_samdec_label, base_name(path).c_str());
 }
 
@@ -118,6 +131,21 @@ void worker_fn() {
   g_proc_count = 0;
   g_stop = false;
   AppConfig cfg = g_cfg;
+
+  /* 诊断：打印路径长度（便于发现尾部隐藏字符） */
+  fprintf(stderr, "[worker] raw input_path='%s' len=%zu\n",
+          cfg.input_path.c_str(), cfg.input_path.size());
+  /* 去除尾部的空白/斜杠（修掉"目录判定失败"的常见原因） */
+  while (!cfg.input_path.empty()) {
+    char c = cfg.input_path.back();
+    if (c == '/' || c == ' ' || c == '\n' || c == '\r' || c == '\t') {
+      cfg.input_path.pop_back();
+    } else {
+      break;
+    }
+  }
+  fprintf(stderr, "[worker] trimmed input_path='%s' len=%zu\n",
+          cfg.input_path.c_str(), cfg.input_path.size());
 
   RknnPool yolo(cfg.yolo_path, cfg.yolo_threads, cfg.label_path);
   std::unique_ptr<MobileSamPool> sam;
@@ -281,6 +309,20 @@ void on_stop(lv_event_t *) {
   update_status_text();
   lv_obj_clear_state(g_start_btn, LV_STATE_DISABLED);
   lv_obj_add_state(g_stop_btn, LV_STATE_DISABLED);
+}
+
+/* 主循环调用：检测 worker 自然结束后回收线程并恢复「开始」按钮。
+ * 这解决了"跑完一次后再点开始无反应"的问题（之前按钮一直处于禁用态）。 */
+static int g_last_state = ST_IDLE;
+void check_worker_done() {
+  int s = g_state.load();
+  if (g_last_state == ST_RUNNING && (s == ST_DONE || s == ST_STOPPED)) {
+    if (g_worker.joinable()) g_worker.join();
+    lv_obj_clear_state(g_start_btn, LV_STATE_DISABLED);
+    lv_obj_add_state(g_stop_btn, LV_STATE_DISABLED);
+    update_status_text();
+  }
+  g_last_state = s;
 }
 
 void on_res_toggle(lv_event_t *) {
@@ -482,9 +524,7 @@ int run_ui_mode(const AppConfig &cfg) {
     ui_tick();
     cv::Mat frame;
     if (g_bus.pop(frame)) ui_canvas_set_bgr(frame);
-    if (g_state.load() == ST_RUNNING || g_state.load() == ST_DONE ||
-        g_state.load() == ST_STOPPED)
-      update_status_text();
+    check_worker_done();
     usleep(5000);
   }
   return 0;

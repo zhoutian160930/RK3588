@@ -53,7 +53,11 @@ static void close_browser() {
 static void on_item(lv_event_t *e) {
   if (!g_ctx) return;
   lv_obj_t *btn = (lv_obj_t *)lv_event_get_target(e);
-  lv_obj_t *label = lv_obj_get_child(btn, 0);
+  /* lv_list_add_btn 先放图标(image)再放文字(label)，所以文字是最后一个子对象。
+   * 不能用 child(0)——那是图标，lv_label_get_text 会返回图标的符号字节污染路径。 */
+  uint32_t cnt = lv_obj_get_child_cnt(btn);
+  lv_obj_t *label = cnt ? lv_obj_get_child(btn, cnt - 1) : NULL;
+  if (!label) return;
   std::string name = lv_label_get_text(label);
 
   if (name == "..") {
