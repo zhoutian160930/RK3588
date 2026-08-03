@@ -26,10 +26,19 @@ const std::string SAM_DECODER_PATH = "model/mobile_sam_decoder.rknn";
 const std::string LABEL_PATH = "model/coco_80_labels_list.txt";
 
 int main(int argc, char **argv) {
+#if WITH_UI
+    /* 无参数直接启动 UI（输入源在界面内用文件浏览器选择） */
+    if (argc < 2) {
+        AppConfig cfg;
+        cfg.input_path = "";
+        return run_ui_mode(cfg);
+    }
+#else
     if (argc < 2) {
         std::cout << "Usage: " << argv[0] << " <image_or_video_or_dir> [yolo_model] [sam_encoder] [sam_decoder] [label_path] [--out-dir OUT_DIR] [--yolo-threads N] [--sam-threads M] [--no-sam] [--headless]" << std::endl;
         return -1;
     }
+#endif
 
     std::string input_path = argv[1];
     std::string yolo_path = YOLO_MODEL_PATH;
