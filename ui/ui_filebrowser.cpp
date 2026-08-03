@@ -52,7 +52,8 @@ static void close_browser() {
 
 static void on_item(lv_event_t *e) {
   if (!g_ctx) return;
-  lv_obj_t *btn = (lv_obj_t *)lv_event_get_target(e);
+  /* 用 current_target 取回调所属的按钮(无论点中的是图标还是文字子对象) */
+  lv_obj_t *btn = (lv_obj_t *)lv_event_get_current_target(e);
   /* lv_list_add_btn 先放图标(image)再放文字(label)，所以文字是最后一个子对象。
    * 不能用 child(0)——那是图标，lv_label_get_text 会返回图标的符号字节污染路径。 */
   uint32_t cnt = lv_obj_get_child_cnt(btn);

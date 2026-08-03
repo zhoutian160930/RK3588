@@ -14,6 +14,8 @@
 #if WITH_UI
 #include "ui_app.h"
 #include "app_config.h"
+#include "logger.h"
+#include <spdlog/spdlog.h>
 #endif
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds Milliseconds;
@@ -27,6 +29,8 @@ const std::string LABEL_PATH = "model/coco_80_labels_list.txt";
 
 int main(int argc, char **argv) {
 #if WITH_UI
+    logger::init("/home/ubuntu/lvgl/output/log");   /* 统一日志：output/log/<时间戳>.txt，控制台同步 */
+    SPDLOG_INFO("program start, argc={}", argc);
     /* 无参数直接启动 UI（输入源在界面内用文件浏览器选择） */
     if (argc < 2) {
         AppConfig cfg;

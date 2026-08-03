@@ -1,33 +1,31 @@
 #pragma once
 #include <opencv2/core.hpp>
 #include <mutex>
+#include "common.h"  // object_detect_result_list
+
+/* 一帧完整数据：带检测框的画面 + 原始检测结果 + 原图尺寸(用于坐标换算) */
+struct FramePayload {
+  cv::Mat frame;                      /* 已画框的 BGR 画面(原图尺寸) */
+  object_detect_result_list results{};/* 检测结果(原图坐标) */
+  int orig_w = 0;
+  int orig_h = 0;
+};
 
 /* 线程安全的"最新帧"信箱：推理工作线程 push，UI 线程 pop。
- * 仅保留最新一帧，避免显示积压（实时显示场景下丢弃中间帧）。 */
+ * 仅保留最新一帧，避免显示积压；带 is_pending 实现"推理一帧展示一帧"。 */
 class FrameBus {
  public:
-  /* 推理线程调用：提交一帧合成好的 BGR 图像。 */
-  void push(const cv::Mat &frame);
-
-  /* UI 线程调用：取出最新帧。有新帧返回 true。 */
-  bool pop(cv::Mat &out);
-
-  /* 推理线程完成时调用。 */
+  void push(const FramePayload &p);
+  bool pop(FramePayload &out);
   void set_done();
-
-  /* UI 线程判断管线是否已结束（且无新帧）。 */
   bool is_done_and_drained();
-
-  /* 是否有"已推入但尚未被 UI 取走"的帧（worker 据此节奏化推送）。 */
   bool is_pending();
-
-  /* 重置信箱状态（新一轮推理前调用）。 */
   void reset();
 
  private:
-  cv::Mat latest_;
+  FramePayload latest_;
   bool has_new_ = false;
   bool done_ = false;
-  bool pending_ = false; /* 已推入但 UI 尚未 pop */
+  bool pending_ = false;
   std::mutex mtx_;
 };

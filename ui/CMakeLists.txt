@@ -8,6 +8,7 @@ add_library(ui_lib STATIC
     ui_app.cpp
     ui_filebrowser.cpp
     ../core/frame_bus.cpp
+    ../core/logger.cpp
 )
 target_include_directories(ui_lib PUBLIC
     ${CMAKE_SOURCE_DIR}
@@ -18,8 +19,10 @@ target_link_libraries(ui_lib PUBLIC
     lvgl
     lv_drivers_lib
     yolov8-utils
+    ${SPDLOG_LIB}
     ${OpenCV_LIBS}
 )
+target_compile_definitions(ui_lib PUBLIC SPDLOG_COMPILED_LIB)
 
 # Phase 1 验证程序
 add_executable(ui_test ui_test.cpp)

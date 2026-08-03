@@ -1,16 +1,16 @@
 #include "frame_bus.h"
 
-void FrameBus::push(const cv::Mat &frame) {
+void FrameBus::push(const FramePayload &p) {
   std::lock_guard<std::mutex> lk(mtx_);
-  frame.copyTo(latest_);
+  latest_ = p;
   has_new_ = true;
   pending_ = true;
 }
 
-bool FrameBus::pop(cv::Mat &out) {
+bool FrameBus::pop(FramePayload &out) {
   std::lock_guard<std::mutex> lk(mtx_);
   if (!has_new_) return false;
-  latest_.copyTo(out);
+  out = latest_;
   has_new_ = false;
   pending_ = false;
   return true;
@@ -33,7 +33,7 @@ bool FrameBus::is_pending() {
 
 void FrameBus::reset() {
   std::lock_guard<std::mutex> lk(mtx_);
-  latest_.release();
+  latest_ = FramePayload{};
   has_new_ = false;
   done_ = false;
   pending_ = false;

@@ -46,6 +46,8 @@ if(ENABLE_UI)
 
     # 按后端选择 lv_drivers 源文件
     find_package(SDL2 REQUIRED)
+    # 强制用系统 spdlog，避免被环境里的 micro_ros 静态库污染
+    find_library(SPDLOG_LIB NAMES spdlog PATHS /usr/lib/aarch64-linux-gnu /usr/lib NO_DEFAULT_PATH REQUIRED)
     if(LVGL_BACKEND STREQUAL "SDL")
         set(LV_DRIVERS_SRC
             ${LV_DRIVERS_DIR}/sdl/sdl.c
