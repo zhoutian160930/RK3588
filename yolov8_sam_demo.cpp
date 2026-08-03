@@ -14,6 +14,7 @@
 #if WITH_UI
 #include "ui_app.h"
 #include "app_config.h"
+#include "config.h"
 #include "logger.h"
 #include <spdlog/spdlog.h>
 #endif
@@ -29,8 +30,13 @@ const std::string LABEL_PATH = "model/coco_80_labels_list.txt";
 
 int main(int argc, char **argv) {
 #if WITH_UI
-    logger::init("/home/ubuntu/lvgl/output/log");   /* 统一日志：output/log/<时间戳>.txt，控制台同步 */
+    config::init("/home/ubuntu/lvgl/yolov8/config", "parameters.json");
+    logger::init(config::g.log_root);             /* 日志目录由配置决定 */
     SPDLOG_INFO("program start, argc={}", argc);
+    SPDLOG_INFO("config: material={} box={} target={} lines={:.2f}/{:.2f}",
+                config::g.material_class, config::g.box_class,
+                config::g.target_count, config::g.line_left_frac,
+                config::g.line_right_frac);
     /* 无参数直接启动 UI（输入源在界面内用文件浏览器选择） */
     if (argc < 2) {
         AppConfig cfg;

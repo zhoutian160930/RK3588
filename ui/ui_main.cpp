@@ -9,6 +9,7 @@
 #include "lvgl.h"
 #include "sdl/sdl.h"
 #include "src/extra/libs/freetype/lv_freetype.h"
+#include "config.h"
 
 /* 中文字体路径：优先用仓库内，否则用系统 Noto Sans CJK。
  * 量产时建议把字体文件放进仓库 fonts/ 目录。 */
@@ -17,7 +18,13 @@
 
 static lv_font_t *s_cn_font = NULL;
 static void load_chinese_font(void) {
-  const char *path = (access(CN_FONT_REPO, R_OK) == 0) ? CN_FONT_REPO : CN_FONT_SYS;
+  const char *path = NULL;
+  if (!config::g.font_path.empty() && access(config::g.font_path.c_str(), R_OK) == 0)
+    path = config::g.font_path.c_str();
+  else if (access(CN_FONT_REPO, R_OK) == 0)
+    path = CN_FONT_REPO;
+  else
+    path = CN_FONT_SYS;
   lv_freetype_init(4, 4, 1 * 1024 * 1024);
   lv_ft_info_t info;
   memset(&info, 0, sizeof(info));

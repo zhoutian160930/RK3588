@@ -15,6 +15,7 @@
 #include "frame_bus.h"
 #include "image_process.h"
 #include "logger.h"
+#include "config.h"
 #include "mobilesam/mobilesam_pool.h"
 #include "rknn_pool.h"
 #include "ui_canvas.h"
@@ -25,9 +26,7 @@
 
 namespace fs = std::filesystem;
 
-/* 结果保存根目录：每次运行在其下建 时间戳 子文件夹 */
-constexpr const char *SAVE_ROOT = "/home/ubuntu/lvgl/output/detImg";
-constexpr const char *LOG_DIR = "/home/ubuntu/lvgl/output/log";
+/* detImg/log 根目录由 config.json 决定(config::g.detImg_root / log_root) */
 
 namespace {
 /* ---- 布局常量 ---- */
@@ -41,9 +40,9 @@ constexpr int CV_Y = 0;           /* canvas 在 left 容器里的 y */
 
 /* ---- 运行期状态 ---- */
 AppConfig g_cfg;
-std::string g_input_path = "/home/ubuntu/lvgl/img_test";
-std::string g_yolo_path = "/home/ubuntu/lvgl/yolomodel/藏药.rknn";
-std::string g_label_path = "/home/ubuntu/lvgl/yolomodel/classes.txt";
+std::string g_input_path;
+std::string g_yolo_path;
+std::string g_label_path;
 std::string g_sam_enc_path;
 std::string g_sam_dec_path;
 bool g_use_sam = false;
@@ -51,11 +50,13 @@ int g_yolo_threads = 3;
 int g_res_choice = 0; /* 0=720p, 1=1080p */
 
 /* 两条竖线(检测区左右边界)，单位为 canvas 坐标 [0, CV_W]；atomic 供 worker 实时读 */
-std::atomic<int> g_line_left_x{CV_W / 4};     /* 默认 240 */
-std::atomic<int> g_line_right_x{CV_W * 3 / 4};/* 默认 720 */
+std::atomic<int> g_line_left_x{0};
+std::atomic<int> g_line_right_x{0};
 lv_obj_t *g_line_left = nullptr;
 lv_obj_t *g_line_right = nullptr;
-std::atomic<int> g_target_count{10};          /* 目标物料数(UI 与 worker 共享) */
+std::atomic<int> g_target_count{10};          /* 目标物料数(UI 与 worker 共享，从 config 初始化) */
+std::atomic<int> g_material_class{0};         /* 物料类别 ID(config) */
+std::atomic<int> g_box_class{1};              /* 盒子类别 ID(config) */
 
 FramePayload g_last_payload;                  /* 最近一帧(用于拖线时实时重判) */
 bool g_has_last = false;
@@ -78,6 +79,7 @@ lv_obj_t *g_start_btn, *g_stop_btn;
 lv_obj_t *g_res_label;
 lv_obj_t *g_quit_btn;
 lv_obj_t *g_spin;          /* YOLO 线程 */
+lv_obj_t *g_sam_switch_obj;/* SAM 开关控件 */
 lv_obj_t *g_target_label;  /* 目标物料数(显示值) */
 
 std::string base_name(const std::string &p) {
@@ -114,40 +116,50 @@ void update_status_text() {
 /* ---- 文件浏览器回调 ---- */
 void on_fb_input(const char *path, void *) {
   g_input_path = trim_path(path);
+  config::g.default_input = g_input_path;
+  config::mark_dirty();
   lv_label_set_text(g_input_label, base_name(path).c_str());
 }
 void on_fb_yolo(const char *path, void *) {
   g_yolo_path = trim_path(path);
+  config::g.yolo_model = g_yolo_path;
+  config::mark_dirty();
   lv_label_set_text(g_yolo_label, base_name(path).c_str());
 }
 void on_fb_label(const char *path, void *) {
   g_label_path = trim_path(path);
+  config::g.label_path = g_label_path;
+  config::mark_dirty();
   lv_label_set_text(g_label_label, base_name(path).c_str());
 }
 void on_fb_samenc(const char *path, void *) {
   g_sam_enc_path = trim_path(path);
+  config::g.sam_encoder = g_sam_enc_path;
+  config::mark_dirty();
   lv_label_set_text(g_samenc_label, base_name(path).c_str());
 }
 void on_fb_samdec(const char *path, void *) {
   g_sam_dec_path = trim_path(path);
+  config::g.sam_decoder = g_sam_dec_path;
+  config::mark_dirty();
   lv_label_set_text(g_samdec_label, base_name(path).c_str());
 }
 
 void open_input_browser(lv_event_t *) {
-  ui_filebrowser_open("/home/ubuntu/lvgl", ".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mkv", 1,
+  ui_filebrowser_open(config::g.fb_input_dir.c_str(), ".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mkv", 1,
                       on_fb_input, NULL);
 }
 void open_yolo_browser(lv_event_t *) {
-  ui_filebrowser_open("/home/ubuntu/lvgl/yolomodel", ".rknn", 0, on_fb_yolo, NULL);
+  ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".rknn", 0, on_fb_yolo, NULL);
 }
 void open_label_browser(lv_event_t *) {
-  ui_filebrowser_open("/home/ubuntu/lvgl/yolomodel", ".txt", 0, on_fb_label, NULL);
+  ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".txt", 0, on_fb_label, NULL);
 }
 void open_samenc_browser(lv_event_t *) {
-  ui_filebrowser_open("/home/ubuntu/lvgl", ".rknn", 0, on_fb_samenc, NULL);
+  ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".rknn", 0, on_fb_samenc, NULL);
 }
 void open_samdec_browser(lv_event_t *) {
-  ui_filebrowser_open("/home/ubuntu/lvgl", ".rknn", 0, on_fb_samdec, NULL);
+  ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".rknn", 0, on_fb_samdec, NULL);
 }
 
 /* 预览标定：选一张图 -> 显示出来(含检测框) -> 拖竖线精确标定 */
@@ -158,7 +170,7 @@ void on_fb_preview(const char *path, void *) {
   on_start(nullptr);  /* 复用单图推理流程：处理这一帧并显示 */
 }
 void open_preview_browser(lv_event_t *) {
-  ui_filebrowser_open("/home/ubuntu/lvgl", ".jpg,.jpeg,.png,.bmp", 0,
+  ui_filebrowser_open(config::g.fb_input_dir.c_str(), ".jpg,.jpeg,.png,.bmp", 0,
                       on_fb_preview, NULL);
 }
 
@@ -175,11 +187,11 @@ struct Judgment {
  * line_left_frac/right 为竖线占图像宽度的比例(0~1)，与分辨率无关。 */
 Judgment judge_results(const object_detect_result_list &res, int orig_w,
                        float line_left_frac, float line_right_frac,
-                       int target) {
+                       int target, int box_class, int material_class) {
   Judgment j;
   int best_w = -1;
   for (int i = 0; i < res.count; i++) {
-    if (res.results[i].cls_id == 1) {
+    if (res.results[i].cls_id == box_class) {
       int w = res.results[i].box.right - res.results[i].box.left;
       if (w > best_w) {
         best_w = w;
@@ -197,7 +209,7 @@ Judgment judge_results(const object_detect_result_list &res, int orig_w,
   j.revealed = (j.box_left >= ll) && (j.box_right <= rr);
   if (!j.revealed) return j;
   for (int i = 0; i < res.count; i++) {
-    if (res.results[i].cls_id == 0) {
+    if (res.results[i].cls_id == material_class) {
       int cx = (res.results[i].box.left + res.results[i].box.right) / 2;
       int cy = (res.results[i].box.top + res.results[i].box.bottom) / 2;
       if (cx >= j.box_left && cx <= j.box_right && cy >= j.box_top &&
@@ -273,7 +285,7 @@ void worker_fn() {
   std::time_t now_t = std::time(nullptr);
   char ts[32];
   std::strftime(ts, sizeof(ts), "%Y%m%d_%H%M%S", std::localtime(&now_t));
-  std::string save_dir = std::string(SAVE_ROOT) + "/" + ts;
+  std::string save_dir = config::g.save_root + "/" + ts;
   fs::create_directories(save_dir);
   SPDLOG_INFO("save_dir={}", save_dir);
 
@@ -293,7 +305,8 @@ void worker_fn() {
     float llf = g_line_left_x.load() / (float)CV_W;
     float rrf = g_line_right_x.load() / (float)CV_W;
     int target = g_target_count.load();
-    Judgment jd = judge_results(r.results, out.cols, llf, rrf, target);
+    Judgment jd = judge_results(r.results, out.cols, llf, rrf, target,
+                                 g_box_class.load(), g_material_class.load());
     int ll = (int)(llf * out.cols), rr = (int)(rrf * out.cols);
     cv::line(out, cv::Point(ll, 0), cv::Point(ll, out.rows),
              cv::Scalar(255, 255, 0), 2);  /* 左线 青 */
@@ -414,8 +427,14 @@ void line_drag_cb(lv_event_t *e) {
   if (x < 0) x = 0;
   if (x > CV_W) x = CV_W;
   lv_obj_set_x(obj, x);
-  if (obj == g_line_left) g_line_left_x = x;
-  else if (obj == g_line_right) g_line_right_x = x;
+  if (obj == g_line_left) {
+    g_line_left_x = x;
+    config::g.line_left_frac = (float)x / CV_W;
+  } else if (obj == g_line_right) {
+    g_line_right_x = x;
+    config::g.line_right_frac = (float)x / CV_W;
+  }
+  config::mark_dirty();
 }
 
 /* 创建一条可拖动竖线(8px 宽，全高，带顶部抓手标签) */
@@ -469,7 +488,8 @@ void run_judgment(const FramePayload &p) {
   float llf = g_line_left_x.load() / (float)CV_W;
   float rrf = g_line_right_x.load() / (float)CV_W;
   int target = g_target_count.load();
-  Judgment j = judge_results(p.results, p.orig_w, llf, rrf, target);
+  Judgment j = judge_results(p.results, p.orig_w, llf, rrf, target,
+                             g_box_class.load(), g_material_class.load());
   char buf[128];
   if (!j.has_box) {
     lv_label_set_text(g_judge_label, "未检测到盒子");
@@ -546,6 +566,8 @@ void check_worker_done() {
 
 void on_res_toggle(lv_event_t *) {
   g_res_choice ^= 1;
+  config::g.default_res = g_res_choice;
+  config::mark_dirty();
   lv_label_set_text(g_res_label, g_res_choice ? "1080p" : "720p");
   if (g_state != ST_RUNNING) apply_resolution();
 }
@@ -553,6 +575,8 @@ void on_res_toggle(lv_event_t *) {
 void on_sam_toggle(lv_event_t *e) {
   lv_obj_t *sw = (lv_obj_t *)lv_event_get_target(e);
   g_use_sam = lv_obj_has_state(sw, LV_STATE_CHECKED);
+  config::g.use_sam = g_use_sam;
+  config::mark_dirty();
   if (g_use_sam) {
     lv_obj_clear_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
@@ -597,6 +621,49 @@ lv_obj_t *add_row(lv_obj_t *parent, const char *title, lv_obj_t **value_label,
   return row;
 }
 
+void sync_config_to_ui() {
+  g_input_path = config::g.default_input;
+  g_yolo_path = config::g.yolo_model;
+  g_label_path = config::g.label_path;
+  g_sam_enc_path = config::g.sam_encoder;
+  g_sam_dec_path = config::g.sam_decoder;
+  g_use_sam = config::g.use_sam;
+  g_yolo_threads = config::g.yolo_threads;
+  g_target_count.store(config::g.target_count);
+  g_material_class.store(config::g.material_class);
+  g_box_class.store(config::g.box_class);
+  g_line_left_x.store((int)(config::g.line_left_frac * CV_W));
+  g_line_right_x.store((int)(config::g.line_right_frac * CV_W));
+  g_res_choice = config::g.default_res;
+
+  if (g_input_label) lv_label_set_text(g_input_label, base_name(g_input_path).c_str());
+  if (g_yolo_label) lv_label_set_text(g_yolo_label, base_name(g_yolo_path).c_str());
+  if (g_label_label) lv_label_set_text(g_label_label, base_name(g_label_path).c_str());
+  if (g_samenc_label) lv_label_set_text(g_samenc_label, base_name(g_sam_enc_path).c_str());
+  if (g_samdec_label) lv_label_set_text(g_samdec_label, base_name(g_sam_dec_path).c_str());
+  if (g_spin) lv_spinbox_set_value(g_spin, g_yolo_threads);
+  if (g_target_label) {
+    char b[16];
+    snprintf(b, sizeof(b), "%d", g_target_count.load());
+    lv_label_set_text(g_target_label, b);
+  }
+  if (g_sam_switch_obj) {
+    if (g_use_sam) lv_obj_add_state(g_sam_switch_obj, LV_STATE_CHECKED);
+    else lv_obj_clear_state(g_sam_switch_obj, LV_STATE_CHECKED);
+    if (g_use_sam) {
+      lv_obj_clear_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_clear_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
+    }
+  }
+  if (g_res_label) lv_label_set_text(g_res_label, g_res_choice ? "1080p" : "720p");
+  if (g_line_left) lv_obj_set_pos(g_line_left, g_line_left_x.load() - 4, CV_Y);
+  if (g_line_right) lv_obj_set_pos(g_line_right, g_line_right_x.load() - 4, CV_Y);
+  if (g_has_last) run_judgment(g_last_payload);
+}
+
 }  // namespace
 
 int run_ui_mode(const AppConfig &cfg) {
@@ -606,7 +673,21 @@ int run_ui_mode(const AppConfig &cfg) {
   }
   SPDLOG_INFO("UI mode started ({}x{})", WIN_W, WIN_H);
 
-  /* 用命令行传入的输入路径作为默认（模型/标签沿用本机可用默认值） */
+  g_input_path = config::g.default_input;
+  g_yolo_path = config::g.yolo_model;
+  g_label_path = config::g.label_path;
+  g_sam_enc_path = config::g.sam_encoder;
+  g_sam_dec_path = config::g.sam_decoder;
+  g_use_sam = config::g.use_sam;
+  g_yolo_threads = config::g.yolo_threads;
+  g_target_count.store(config::g.target_count);
+  g_material_class.store(config::g.material_class);
+  g_box_class.store(config::g.box_class);
+  g_line_left_x.store((int)(config::g.line_left_frac * CV_W));
+  g_line_right_x.store((int)(config::g.line_right_frac * CV_W));
+  g_res_choice = config::g.default_res;
+
+  /* 命令行输入路径覆盖配置文件 */
   if (!cfg.input_path.empty()) g_input_path = cfg.input_path;
 
   /* 左侧画布区 */
@@ -665,6 +746,7 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_obj_align(sw, LV_ALIGN_RIGHT_MID, 0, 0);
   lv_obj_add_state(sw, g_use_sam ? LV_STATE_CHECKED : 0);
   lv_obj_add_event_cb(sw, on_sam_toggle, LV_EVENT_VALUE_CHANGED, NULL);
+  g_sam_switch_obj = sw;
 
   g_samenc_row = add_row(panel, "SAM encoder(.rknn)", &g_samenc_label,
                          open_samenc_browser, "选");
@@ -689,6 +771,11 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_spinbox_set_range(spin, 1, 6);
   lv_spinbox_set_digit_format(spin, 1, 0);
   lv_spinbox_set_value(spin, g_yolo_threads);
+  lv_obj_add_event_cb(spin, [](lv_event_t *) {
+    g_yolo_threads = lv_spinbox_get_value(g_spin);
+    config::g.yolo_threads = g_yolo_threads;
+    config::mark_dirty();
+  }, LV_EVENT_VALUE_CHANGED, NULL);
   lv_obj_align(spin, LV_ALIGN_RIGHT_MID, 0, 0);
   g_spin = spin;
 
@@ -725,6 +812,8 @@ int run_ui_mode(const AppConfig &cfg) {
       [](lv_event_t *) {
         int v = g_target_count.load();
         if (v > 1) g_target_count.store(v - 1);
+        config::g.target_count = g_target_count.load();
+        config::mark_dirty();
         char b[16];
         snprintf(b, sizeof(b), "%d", g_target_count.load());
         if (g_target_label) lv_label_set_text(g_target_label, b);
@@ -741,6 +830,8 @@ int run_ui_mode(const AppConfig &cfg) {
       [](lv_event_t *) {
         int v = g_target_count.load();
         if (v < 999) g_target_count.store(v + 1);
+        config::g.target_count = g_target_count.load();
+        config::mark_dirty();
         char b[16];
         snprintf(b, sizeof(b), "%d", g_target_count.load());
         if (g_target_label) lv_label_set_text(g_target_label, b);
@@ -806,6 +897,12 @@ int run_ui_mode(const AppConfig &cfg) {
       ui_canvas_set_bgr(payload.frame);
     }
     if (g_has_last) run_judgment(g_last_payload);
+
+    if (g_state != ST_RUNNING && config::poll_hot_reload())
+      sync_config_to_ui();
+    if (config::poll_save_due())
+      config::save();
+
     ui_tick();
     check_worker_done();
     usleep(5000);
