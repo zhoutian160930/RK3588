@@ -19,7 +19,6 @@ struct Config {
   int yolo_threads = 3;
   bool use_sam = false;
   int sam_threads = 3;
-  std::string save_root = "output";
   std::string default_input;
   std::string fb_model_dir = "/home/ubuntu/lvgl/yolomodel";
   std::string fb_input_dir = "/home/ubuntu/lvgl";

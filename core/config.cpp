@@ -61,7 +61,6 @@ static void apply_kv(const std::string &k, const std::string &v) {
   else if (k == "yolo_threads") g.yolo_threads = std::atoi(v.c_str());
   else if (k == "use_sam") g.use_sam = (v == "true" || v == "1");
   else if (k == "sam_threads") g.sam_threads = std::atoi(v.c_str());
-  else if (k == "save_root") g.save_root = v;
   else if (k == "default_input") g.default_input = v;
   else if (k == "fb_model_dir") g.fb_model_dir = v;
   else if (k == "fb_input_dir") g.fb_input_dir = v;
@@ -104,7 +103,6 @@ static void write_file() {
   out << "  \"yolo_threads\": " << g.yolo_threads << ",\n";
   out << "  \"use_sam\": " << (g.use_sam ? "true" : "false") << ",\n";
   out << "  \"sam_threads\": " << g.sam_threads << ",\n";
-  out << "  \"save_root\": \"" << g.save_root << "\",\n";
   out << "  \"default_input\": \"" << g.default_input << "\",\n";
   out << "  \"fb_model_dir\": \"" << g.fb_model_dir << "\",\n";
   out << "  \"fb_input_dir\": \"" << g.fb_input_dir << "\",\n";

@@ -174,51 +174,66 @@ void open_preview_browser(lv_event_t *) {
                       on_fb_preview, NULL);
 }
 
-/* ---- 满料判定（UI 标签与 worker 画图共用） ---- */
-struct Judgment {
-  bool has_box = false;
-  bool revealed = false;
-  int material_count = 0;
-  bool full = false;
+/* ---- 满料判定（UI 标签与 worker 画图共用，支持多盒子） ---- */
+struct BoxJudgment {
   int box_left = 0, box_right = 0, box_top = 0, box_bottom = 0; /* 原图坐标 */
+  bool revealed = false;   /* 是否在两竖线内(完全漏出) */
+  int material_count = 0;  /* 盒内物料数 */
+  bool full = false;       /* 是否满料(仅对 revealed 的盒子有意义) */
 };
 
-/* 共享判定函数：按竖线分数判定盒子是否完全漏出，并数盒内物料(cls0)。
- * line_left_frac/right 为竖线占图像宽度的比例(0~1)，与分辨率无关。 */
-Judgment judge_results(const object_detect_result_list &res, int orig_w,
-                       float line_left_frac, float line_right_frac,
-                       int target, int box_class, int material_class) {
-  Judgment j;
-  int best_w = -1;
+/* 多盒判定：找出所有盒子(box_class)，每个判断是否在两竖线内；
+ * 物料(material_class)按中心点归属到包含它的盒子。
+ * line_left_frac/right 为竖线占图宽比例(0~1)。 */
+std::vector<BoxJudgment> judge_all_boxes(const object_detect_result_list &res,
+                                         int orig_w, float line_left_frac,
+                                         float line_right_frac, int target,
+                                         int box_class, int material_class) {
+  std::vector<BoxJudgment> boxes;
+  int ll = (int)(line_left_frac * orig_w);
+  int rr = (int)(line_right_frac * orig_w);
   for (int i = 0; i < res.count; i++) {
-    if (res.results[i].cls_id == box_class) {
-      int w = res.results[i].box.right - res.results[i].box.left;
-      if (w > best_w) {
-        best_w = w;
-        j.has_box = true;
-        j.box_left = res.results[i].box.left;
-        j.box_right = res.results[i].box.right;
-        j.box_top = res.results[i].box.top;
-        j.box_bottom = res.results[i].box.bottom;
+    if (res.results[i].cls_id != box_class) continue;
+    BoxJudgment b;
+    b.box_left = res.results[i].box.left;
+    b.box_right = res.results[i].box.right;
+    b.box_top = res.results[i].box.top;
+    b.box_bottom = res.results[i].box.bottom;
+    b.revealed = (b.box_left >= ll) && (b.box_right <= rr);
+    boxes.push_back(b);
+  }
+  /* 物料归属到包含其中心的盒子 */
+  for (int i = 0; i < res.count; i++) {
+    if (res.results[i].cls_id != material_class) continue;
+    int cx = (res.results[i].box.left + res.results[i].box.right) / 2;
+    int cy = (res.results[i].box.top + res.results[i].box.bottom) / 2;
+    for (auto &b : boxes) {
+      if (cx >= b.box_left && cx <= b.box_right && cy >= b.box_top &&
+          cy <= b.box_bottom) {
+        b.material_count++;
+        break;
       }
     }
   }
-  if (!j.has_box) return j;
-  int ll = (int)(line_left_frac * orig_w);
-  int rr = (int)(line_right_frac * orig_w);
-  j.revealed = (j.box_left >= ll) && (j.box_right <= rr);
-  if (!j.revealed) return j;
-  for (int i = 0; i < res.count; i++) {
-    if (res.results[i].cls_id == material_class) {
-      int cx = (res.results[i].box.left + res.results[i].box.right) / 2;
-      int cy = (res.results[i].box.top + res.results[i].box.bottom) / 2;
-      if (cx >= j.box_left && cx <= j.box_right && cy >= j.box_top &&
-          cy <= j.box_bottom)
-        j.material_count++;
-    }
+  for (auto &b : boxes) {
+    if (b.revealed) b.full = (b.material_count >= target);
   }
-  j.full = (j.material_count >= target);
-  return j;
+  return boxes;
+}
+
+/* 汇总：满/未满/未漏出 的盒子数 */
+struct JudgeSummary {
+  int total = 0, full = 0, not_full = 0, not_revealed = 0;
+};
+JudgeSummary summarize(const std::vector<BoxJudgment> &boxes) {
+  JudgeSummary s;
+  s.total = boxes.size();
+  for (auto &b : boxes) {
+    if (!b.revealed) s.not_revealed++;
+    else if (b.full) s.full++;
+    else s.not_full++;
+  }
+  return s;
 }
 
 /* ---- 推理工作线程 ---- */
@@ -281,11 +296,11 @@ void worker_fn() {
     return;
   }
 
-  /* 本次运行的结果保存目录：SAVE_ROOT/<时间戳>/ */
+  /* 本次运行的结果保存目录：detImg_root/<时间戳>/（绝对路径） */
   std::time_t now_t = std::time(nullptr);
   char ts[32];
   std::strftime(ts, sizeof(ts), "%Y%m%d_%H%M%S", std::localtime(&now_t));
-  std::string save_dir = config::g.save_root + "/" + ts;
+  std::string save_dir = config::g.detImg_root + "/" + ts;
   fs::create_directories(save_dir);
   SPDLOG_INFO("save_dir={}", save_dir);
 
@@ -301,26 +316,47 @@ void worker_fn() {
     ImageProcess ip(out.cols, out.rows, 640);
     ip.ImagePostProcess(out, r.results);
 
-    /* 画两条竖线 + 判定文字到图上(保存与显示都用) */
+    /* 画两条竖线 + 每个盒子的判定文字到图上(保存与显示都用) */
     float llf = g_line_left_x.load() / (float)CV_W;
     float rrf = g_line_right_x.load() / (float)CV_W;
     int target = g_target_count.load();
-    Judgment jd = judge_results(r.results, out.cols, llf, rrf, target,
-                                 g_box_class.load(), g_material_class.load());
+    int bc = g_box_class.load(), mc = g_material_class.load();
+    auto boxes = judge_all_boxes(r.results, out.cols, llf, rrf, target, bc, mc);
+    JudgeSummary sum = summarize(boxes);
     int ll = (int)(llf * out.cols), rr = (int)(rrf * out.cols);
     cv::line(out, cv::Point(ll, 0), cv::Point(ll, out.rows),
              cv::Scalar(255, 255, 0), 2);  /* 左线 青 */
     cv::line(out, cv::Point(rr, 0), cv::Point(rr, out.rows),
              cv::Scalar(255, 0, 255), 2);  /* 右线 品红 */
-    /* 判定文字(英文，OpenCV putText 不支持中文) */
-    std::string rev_txt = jd.has_box ? (jd.revealed ? "Revealed: YES" : "Revealed: NO") : "No Box";
-    cv::Scalar rev_col = jd.revealed ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 128, 255);
-    cv::putText(out, rev_txt, cv::Point(15, 35), cv::FONT_HERSHEY_SIMPLEX, 1.0, rev_col, 2);
-    char fbuf[64];
-    const char *tag = jd.full ? "FULL" : "NOT FULL";
-    snprintf(fbuf, sizeof(fbuf), "Material: %s (%d/%d)", tag, jd.material_count, target);
-    cv::Scalar fcol = jd.full ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
-    cv::putText(out, fbuf, cv::Point(15, 75), cv::FONT_HERSHEY_SIMPLEX, 1.0, fcol, 2);
+    /* 顶部汇总 */
+    char top[128];
+    snprintf(top, sizeof(top), "Boxes: %d | FULL %d  NOTFULL %d  NOTREVEALED %d",
+             sum.total, sum.full, sum.not_full, sum.not_revealed);
+    cv::Scalar top_col = (sum.not_full == 0 && sum.not_revealed == 0 && sum.total > 0)
+                             ? cv::Scalar(0, 255, 0)
+                             : cv::Scalar(0, 165, 255);
+    cv::putText(out, top, cv::Point(15, 35), cv::FONT_HERSHEY_SIMPLEX, 0.9,
+                top_col, 2);
+    /* 每个盒子在其上方画判定 */
+    for (auto &b : boxes) {
+      const char *tag;
+      cv::Scalar col;
+      char buf[64];
+      if (!b.revealed) {
+        tag = "NOT REVEALED";
+        col = cv::Scalar(0, 165, 255);
+        snprintf(buf, sizeof(buf), "%s", tag);
+      } else if (b.full) {
+        col = cv::Scalar(0, 255, 0);
+        snprintf(buf, sizeof(buf), "FULL %d/%d", b.material_count, target);
+      } else {
+        col = cv::Scalar(0, 0, 255);
+        snprintf(buf, sizeof(buf), "NOT FULL %d/%d", b.material_count, target);
+      }
+      int y = b.box_top - 8 > 10 ? b.box_top - 8 : b.box_bottom + 22;
+      cv::putText(out, buf, cv::Point(b.box_left, y), cv::FONT_HERSHEY_SIMPLEX,
+                  0.8, col, 2);
+    }
 
     FramePayload payload;
     payload.frame = out;
@@ -339,17 +375,16 @@ void worker_fn() {
     bool ok = cv::imwrite(savepath, out);
     if (!ok) SPDLOG_ERROR("imwrite failed: {}", savepath);
 
-    /* 每图评判结果日志 */
-    if (jd.has_box) {
+    /* 每图评判结果日志(多盒汇总) */
+    if (sum.total > 0) {
       SPDLOG_INFO(
-          "frame {} | box(img)={}~{} lines(frac)={:.2f}~{:.2f} revealed={} "
-          "material={}/{} full={} | save={}",
-          cur_idx, jd.box_left, jd.box_right, llf, rrf, jd.revealed,
-          jd.material_count, target, jd.full, savepath);
+          "frame {} | boxes={} full={} notfull={} notrevealed={} lines(frac)={:.2f}~{:.2f} "
+          "target={} | save={}",
+          cur_idx, sum.total, sum.full, sum.not_full, sum.not_revealed, llf, rrf,
+          target, savepath);
     } else {
-      SPDLOG_INFO(
-          "frame {} | no box(cls1) detected, revealed=false | save={}", cur_idx,
-          savepath);
+      SPDLOG_INFO("frame {} | no box(cls{}) detected | save={}", cur_idx, bc,
+                  savepath);
     }
 
     if (sam) {
@@ -477,7 +512,7 @@ void apply_resolution() {
   lv_obj_set_pos(g_line_right, g_line_right_x - 4, CV_Y);
 }
 
-/* UI 线程：用当前竖线/目标值做判定，更新 g_judge_label */
+/* UI 线程：用当前竖线/目标值做判定(多盒)，更新 g_judge_label */
 void run_judgment(const FramePayload &p) {
   if (!g_judge_label) return;
   if (p.orig_w <= 0 || p.frame.empty()) {
@@ -488,29 +523,24 @@ void run_judgment(const FramePayload &p) {
   float llf = g_line_left_x.load() / (float)CV_W;
   float rrf = g_line_right_x.load() / (float)CV_W;
   int target = g_target_count.load();
-  Judgment j = judge_results(p.results, p.orig_w, llf, rrf, target,
-                             g_box_class.load(), g_material_class.load());
-  char buf[128];
-  if (!j.has_box) {
+  auto boxes = judge_all_boxes(p.results, p.orig_w, llf, rrf, target,
+                               g_box_class.load(), g_material_class.load());
+  JudgeSummary s = summarize(boxes);
+  char buf[256];
+  if (s.total == 0) {
     lv_label_set_text(g_judge_label, "未检测到盒子");
     lv_obj_set_style_text_color(g_judge_label, lv_color_make(200, 200, 0), 0);
     return;
   }
-  int bl = (int)(j.box_left * CV_W / (float)p.orig_w);
-  int br = (int)(j.box_right * CV_W / (float)p.orig_w);
-  if (!j.revealed) {
-    snprintf(buf, sizeof(buf), "盒子未完全漏出\n(box %d~%d 不在 %d~%d 内)", bl, br,
-             g_line_left_x.load(), g_line_right_x.load());
-    lv_label_set_text(g_judge_label, buf);
-    lv_obj_set_style_text_color(g_judge_label, lv_color_make(255, 160, 0), 0);
-    return;
-  }
-  if (j.full) {
-    snprintf(buf, sizeof(buf), "#00FF00 满物料#  %d/%d", j.material_count, target);
-  } else {
-    snprintf(buf, sizeof(buf), "#FF3030 未满物料#  %d/%d", j.material_count, target);
-  }
+  snprintf(buf, sizeof(buf),
+           "共%d盒：#00FF00 满%d#  #FF3030 未满%d#  #FFA500 未漏出%d#",
+           s.total, s.full, s.not_full, s.not_revealed);
   lv_label_set_text(g_judge_label, buf);
+  /* 整体判定颜色：全满绿，有未满红，仅未漏出橙 */
+  lv_color_t c = (s.not_full > 0)          ? lv_color_make(255, 48, 48)
+                 : (s.not_revealed > 0)    ? lv_color_make(255, 165, 0)
+                                            : lv_color_make(0, 255, 0);
+  lv_obj_set_style_text_color(g_judge_label, c, 0);
 }
 
 void on_start(lv_event_t *) {
