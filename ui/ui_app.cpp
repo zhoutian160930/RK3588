@@ -57,6 +57,9 @@ lv_obj_t *g_line_right = nullptr;
 std::atomic<int> g_target_count{10};          /* 目标物料数(UI 与 worker 共享，从 config 初始化) */
 std::atomic<int> g_material_class{0};         /* 物料类别 ID(config) */
 std::atomic<int> g_box_class{1};              /* 盒子类别 ID(config) */
+/* 运行期累计：正确(盒内物料数==目标且完全漏出)/错误(否则) */
+std::atomic<int> g_correct_count{0};
+std::atomic<int> g_wrong_count{0};
 
 FramePayload g_last_payload;                  /* 最近一帧(用于拖线时实时重判) */
 bool g_has_last = false;
@@ -75,11 +78,11 @@ lv_obj_t *g_samenc_label, *g_samdec_label;
 lv_obj_t *g_samenc_row, *g_samdec_row;
 lv_obj_t *g_status_label;
 lv_obj_t *g_judge_label;   /* 满料判定结果(大字) */
+lv_obj_t *g_stat_label;    /* 累计 正确/错误 物料数 */
+lv_obj_t *g_sam_switch_obj = nullptr; /* SAM 开关(config 同步用) */
 lv_obj_t *g_start_btn, *g_stop_btn;
 lv_obj_t *g_res_label;
 lv_obj_t *g_quit_btn;
-lv_obj_t *g_spin;          /* YOLO 线程 */
-lv_obj_t *g_sam_switch_obj;/* SAM 开关控件 */
 lv_obj_t *g_target_label;  /* 目标物料数(显示值) */
 
 std::string base_name(const std::string &p) {
@@ -216,7 +219,7 @@ std::vector<BoxJudgment> judge_all_boxes(const object_detect_result_list &res,
     }
   }
   for (auto &b : boxes) {
-    if (b.revealed) b.full = (b.material_count >= target);
+    if (b.revealed) b.full = (b.material_count == target);
   }
   return boxes;
 }
@@ -240,6 +243,8 @@ JudgeSummary summarize(const std::vector<BoxJudgment> &boxes) {
 void worker_fn() {
   g_state = ST_RUNNING;
   g_proc_count = 0;
+  g_correct_count = 0;
+  g_wrong_count = 0;
   g_stop = false;
   AppConfig cfg = g_cfg;
 
@@ -323,6 +328,12 @@ void worker_fn() {
     int bc = g_box_class.load(), mc = g_material_class.load();
     auto boxes = judge_all_boxes(r.results, out.cols, llf, rrf, target, bc, mc);
     JudgeSummary sum = summarize(boxes);
+    /* 累计正确/错误：完全漏出的盒子，full(物料数==目标)为正确，否则错误 */
+    for (auto &b : boxes) {
+      if (!b.revealed) continue;
+      if (b.full) g_correct_count.fetch_add(1);
+      else g_wrong_count.fetch_add(1);
+    }
     int ll = (int)(llf * out.cols), rr = (int)(rrf * out.cols);
     cv::line(out, cv::Point(ll, 0), cv::Point(ll, out.rows),
              cv::Scalar(255, 255, 0), 2);  /* 左线 青 */
@@ -556,7 +567,7 @@ void on_start(lv_event_t *) {
   g_cfg.sam_enc_path = g_sam_enc_path;
   g_cfg.sam_dec_path = g_sam_dec_path;
   g_cfg.use_sam = g_use_sam;
-  g_cfg.yolo_threads = lv_spinbox_get_value(g_spin);
+  g_cfg.yolo_threads = g_yolo_threads;
   g_cfg.out_dir = "outputs";
   fs::create_directories(g_cfg.out_dir);
 
@@ -671,7 +682,6 @@ void sync_config_to_ui() {
   if (g_label_label) lv_label_set_text(g_label_label, base_name(g_label_path).c_str());
   if (g_samenc_label) lv_label_set_text(g_samenc_label, base_name(g_sam_enc_path).c_str());
   if (g_samdec_label) lv_label_set_text(g_samdec_label, base_name(g_sam_dec_path).c_str());
-  if (g_spin) lv_spinbox_set_value(g_spin, g_yolo_threads);
   if (g_target_label) {
     char b[16];
     snprintf(b, sizeof(b), "%d", g_target_count.load());
@@ -737,6 +747,12 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_obj_set_style_text_color(g_judge_label, lv_color_white(), 0);
   lv_obj_align(g_judge_label, LV_ALIGN_TOP_LEFT, 8, CV_H + 16);
 
+  /* 累计 正确/错误 物料数(实时更新) */
+  g_stat_label = lv_label_create(left);
+  lv_label_set_recolor(g_stat_label, true);
+  lv_label_set_text(g_stat_label, "正确: 0  错误: 0");
+  lv_obj_align(g_stat_label, LV_ALIGN_TOP_LEFT, 8, CV_H + 56);
+
   /* 右侧控制面板 */
   lv_obj_t *panel = lv_obj_create(lv_scr_act());
   lv_obj_set_size(panel, PANEL_W, WIN_H);
@@ -787,35 +803,13 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_obj_add_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
 
-  /* 线程 spinbox */
-  lv_obj_t *thr_row = lv_obj_create(panel);
-  lv_obj_set_size(thr_row, PANEL_W - 20, 44);
-  lv_obj_set_style_pad_all(thr_row, 2, 0);
-  lv_obj_set_style_border_width(thr_row, 0, 0);
-  lv_obj_clear_flag(thr_row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_align_to(thr_row, g_samdec_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
-  lv_obj_t *tl = lv_label_create(thr_row);
-  lv_label_set_text(tl, "YOLO 线程");
-  lv_obj_align(tl, LV_ALIGN_LEFT_MID, 0, 0);
-  lv_obj_t *spin = lv_spinbox_create(thr_row);
-  lv_spinbox_set_range(spin, 1, 6);
-  lv_spinbox_set_digit_format(spin, 1, 0);
-  lv_spinbox_set_value(spin, g_yolo_threads);
-  lv_obj_add_event_cb(spin, [](lv_event_t *) {
-    g_yolo_threads = lv_spinbox_get_value(g_spin);
-    config::g.yolo_threads = g_yolo_threads;
-    config::mark_dirty();
-  }, LV_EVENT_VALUE_CHANGED, NULL);
-  lv_obj_align(spin, LV_ALIGN_RIGHT_MID, 0, 0);
-  g_spin = spin;
-
   /* 目标物料数：- [值] +  (纯鼠标点击可调，不依赖编码器/滚轮) */
   lv_obj_t *res_row = lv_obj_create(panel);
   lv_obj_set_size(res_row, PANEL_W - 20, 44);
   lv_obj_set_style_pad_all(res_row, 2, 0);
   lv_obj_set_style_border_width(res_row, 0, 0);
   lv_obj_clear_flag(res_row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_align_to(res_row, thr_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
+  lv_obj_align_to(res_row, g_samdec_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
   lv_obj_t *tl2 = lv_label_create(res_row);
   lv_label_set_text(tl2, "目标物料数");
   lv_obj_align(tl2, LV_ALIGN_LEFT_MID, 0, 0);
@@ -927,6 +921,14 @@ int run_ui_mode(const AppConfig &cfg) {
       ui_canvas_set_bgr(payload.frame);
     }
     if (g_has_last) run_judgment(g_last_payload);
+
+    /* 实时刷新累计 正确/错误 计数 */
+    if (g_stat_label) {
+      char sb[64];
+      snprintf(sb, sizeof(sb), "#00FF00 正确: %d#    #FF3030 错误: %d#",
+               g_correct_count.load(), g_wrong_count.load());
+      lv_label_set_text(g_stat_label, sb);
+    }
 
     if (g_state != ST_RUNNING && config::poll_hot_reload())
       sync_config_to_ui();
