@@ -91,11 +91,7 @@ int ui_init(int width, int height) {
   mouse_drv.type = LV_INDEV_TYPE_POINTER;
   mouse_drv.read_cb = sdl_mouse_read;
   lv_indev_t *mouse = lv_indev_drv_register(&mouse_drv);
-
-  LV_IMG_DECLARE(mouse_cursor_icon);
-  lv_obj_t *cursor = lv_img_create(lv_scr_act());
-  lv_img_set_src(cursor, &mouse_cursor_icon);
-  lv_indev_set_cursor(mouse, cursor);
+  /* 用系统鼠标光标，不再绘制 LVGL 模拟光标(避免双鼠标) */
 
   /* 键盘输入 */
   static lv_indev_drv_t kb_drv;
