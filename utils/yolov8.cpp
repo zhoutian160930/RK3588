@@ -76,16 +76,11 @@ Yolov8::Yolov8(std::string &&model_path) : model_path_(model_path) {}
 
 int Yolov8::Init(rknn_context *ctx_in, bool copy_weight) {
   int model_len = 0;
-  char *model;
+  char *model = nullptr;
   int ret = 0;
-  model_len = read_data_from_file(model_path_.c_str(), &model);
-  if (model == nullptr) {
-    printf("[error] Load model failed\n");
-    return -1;
-  }
   if (copy_weight) {
     printf("[info] rknn_dup_context() is called\n");
-    // 复用模型参数
+    /* 复用已有 context 的权重，无需读取模型文件（避免无谓读取+内存泄漏） */
     ret = rknn_dup_context(ctx_in, &ctx_);
     if (ret != RKNN_SUCC) {
       printf("[error] rknn_dup_context failed! error code = %d\n", ret);
@@ -93,6 +88,11 @@ int Yolov8::Init(rknn_context *ctx_in, bool copy_weight) {
     }
   } else {
     printf("[info] rknn_init() is called\n");
+    model_len = read_data_from_file(model_path_.c_str(), &model);
+    if (model == nullptr) {
+      printf("[error] Load model failed\n");
+      return -1;
+    }
     ret = rknn_init(&ctx_, model, model_len, 0, NULL);
     free(model);
     if (ret != RKNN_SUCC) {
