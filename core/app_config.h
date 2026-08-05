@@ -11,6 +11,4 @@ struct AppConfig {
   int yolo_threads = 3;
   int sam_threads = 3;
   bool use_sam = true;
-  int ui_width = 1280;
-  int ui_height = 720;
 };

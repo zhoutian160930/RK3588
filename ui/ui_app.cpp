@@ -49,7 +49,7 @@ std::string g_sam_enc_path;
 std::string g_sam_dec_path;
 bool g_use_sam = false;
 int g_yolo_threads = 3;
-int g_res_choice = 0; /* 0=720p, 1=1080p */
+
 
 /* 两条竖线(检测区左右边界)，单位为 canvas 坐标 [0, CV_W]；atomic 供 worker 实时读 */
 std::atomic<int> g_line_left_x{0};
@@ -76,14 +76,10 @@ std::atomic<int> g_proc_count{0};
 /* ---- 控件句柄 ---- */
 lv_obj_t *g_canvas;
 lv_obj_t *g_input_label, *g_yolo_label, *g_label_label;
-lv_obj_t *g_samenc_label, *g_samdec_label;
-lv_obj_t *g_samenc_row, *g_samdec_row;
 lv_obj_t *g_status_label;
 lv_obj_t *g_judge_label;   /* 满料判定结果(大字) */
 lv_obj_t *g_stat_label;    /* 累计 正确/错误 物料数 */
-lv_obj_t *g_sam_switch_obj = nullptr; /* SAM 开关(config 同步用) */
 lv_obj_t *g_start_btn, *g_stop_btn;
-lv_obj_t *g_res_label;
 lv_obj_t *g_quit_btn;
 lv_obj_t *g_target_label;  /* 目标物料数(显示值) */
 lv_obj_t *g_info_box = nullptr;   /* 左下：当前图片物料信息(滚动) */
@@ -143,23 +139,6 @@ void on_fb_label(const char *path, void *) {
   if (g_label_label) lv_label_set_text(g_label_label, base_name(path).c_str());
   SPDLOG_INFO("标签文件已切换: {}", g_label_path);
 }
-void on_fb_samenc(const char *path, void *) {
-  g_sam_enc_path = trim_path(path);
-  config::g.sam_encoder = g_sam_enc_path;
-  config::mark_dirty();
-  lv_label_set_text(g_samenc_label, base_name(path).c_str());
-}
-void on_fb_samdec(const char *path, void *) {
-  g_sam_dec_path = trim_path(path);
-  config::g.sam_decoder = g_sam_dec_path;
-  config::mark_dirty();
-  lv_label_set_text(g_samdec_label, base_name(path).c_str());
-}
-
-void open_input_browser(lv_event_t *) {
-  ui_filebrowser_open(config::g.fb_input_dir.c_str(), ".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mkv", 1,
-                      on_fb_input, NULL);
-}
 
 /* 输入源二选一弹出菜单：本地文件夹 / 摄像头 */
 static lv_obj_t *g_src_popup = nullptr;
@@ -208,24 +187,6 @@ void open_yolo_browser(lv_event_t *) {
 }
 void open_label_browser(lv_event_t *) {
   ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".txt", 0, on_fb_label, NULL);
-}
-void open_samenc_browser(lv_event_t *) {
-  ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".rknn", 0, on_fb_samenc, NULL);
-}
-void open_samdec_browser(lv_event_t *) {
-  ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".rknn", 0, on_fb_samdec, NULL);
-}
-
-/* 预览标定：选一张图 -> 显示出来(含检测框) -> 拖竖线精确标定 */
-void on_start(lv_event_t *);  /* 前置声明 */
-void on_fb_preview(const char *path, void *) {
-  g_input_path = trim_path(path);
-  SPDLOG_INFO("preview image: {}", g_input_path);
-  on_start(nullptr);  /* 复用单图推理流程：处理这一帧并显示 */
-}
-void open_preview_browser(lv_event_t *) {
-  ui_filebrowser_open(config::g.fb_input_dir.c_str(), ".jpg,.jpeg,.png,.bmp", 0,
-                      on_fb_preview, NULL);
 }
 
 /* ---- 满料判定（UI 标签与 worker 画图共用，支持多盒子） ---- */
@@ -663,62 +624,11 @@ void check_worker_done() {
   g_last_state = s;
 }
 
-void on_res_toggle(lv_event_t *) {
-  g_res_choice ^= 1;
-  config::g.default_res = g_res_choice;
-  config::mark_dirty();
-  lv_label_set_text(g_res_label, g_res_choice ? "1080p" : "720p");
-  if (g_state != ST_RUNNING) apply_resolution();
-}
-
-void on_sam_toggle(lv_event_t *e) {
-  lv_obj_t *sw = (lv_obj_t *)lv_event_get_target(e);
-  g_use_sam = lv_obj_has_state(sw, LV_STATE_CHECKED);
-  config::g.use_sam = g_use_sam;
-  config::mark_dirty();
-  if (g_use_sam) {
-    lv_obj_clear_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
-  } else {
-    lv_obj_add_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
-  }
-}
-
 void on_quit(lv_event_t *) {
   g_stop = true;
   if (g_worker.joinable()) g_worker.join();
   can_bus::shutdown();
   exit(0);
-}
-
-/* 创建一行：标题 + 值标签 + 选择按钮，返回行容器。 */
-lv_obj_t *add_row(lv_obj_t *parent, const char *title, lv_obj_t **value_label,
-                  lv_event_cb_t pick_cb, const char *pick_txt) {
-  lv_obj_t *row = lv_obj_create(parent);
-  lv_obj_set_size(row, PANEL_W - 20, 56);
-  lv_obj_set_style_pad_all(row, 2, 0);
-  lv_obj_set_style_border_width(row, 0, 0);
-  lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_t *t = lv_label_create(row);
-  lv_label_set_text(t, title);
-  lv_obj_align(t, LV_ALIGN_TOP_LEFT, 0, 0);
-  lv_obj_t *v = lv_label_create(row);
-  lv_label_set_text(v, "(未选)");
-  lv_obj_align(v, LV_ALIGN_BOTTOM_LEFT, 0, 0);
-  lv_obj_set_width(v, PANEL_W - 90);
-  lv_label_set_long_mode(v, LV_LABEL_LONG_DOT);
-  if (value_label) *value_label = v;
-  if (pick_cb) {
-    lv_obj_t *b = lv_btn_create(row);
-    lv_obj_set_size(b, 56, 30);
-    lv_obj_align(b, LV_ALIGN_RIGHT_MID, 0, 0);
-    lv_obj_t *bl = lv_label_create(b);
-    lv_label_set_text(bl, pick_txt);
-    lv_obj_center(bl);
-    lv_obj_add_event_cb(b, pick_cb, LV_EVENT_CLICKED, NULL);
-  }
-  return row;
 }
 
 void sync_config_to_ui() {
@@ -734,30 +644,15 @@ void sync_config_to_ui() {
   g_box_class.store(config::g.box_class);
   g_line_left_x.store((int)(config::g.line_left_frac * CV_W));
   g_line_right_x.store((int)(config::g.line_right_frac * CV_W));
-  g_res_choice = config::g.default_res;
 
   if (g_input_label) lv_label_set_text(g_input_label, base_name(g_input_path).c_str());
   if (g_yolo_label) lv_label_set_text(g_yolo_label, base_name(g_yolo_path).c_str());
   if (g_label_label) lv_label_set_text(g_label_label, base_name(g_label_path).c_str());
-  if (g_samenc_label) lv_label_set_text(g_samenc_label, base_name(g_sam_enc_path).c_str());
-  if (g_samdec_label) lv_label_set_text(g_samdec_label, base_name(g_sam_dec_path).c_str());
   if (g_target_label) {
     char b[16];
     snprintf(b, sizeof(b), "%d", g_target_count.load());
     lv_label_set_text(g_target_label, b);
   }
-  if (g_sam_switch_obj) {
-    if (g_use_sam) lv_obj_add_state(g_sam_switch_obj, LV_STATE_CHECKED);
-    else lv_obj_clear_state(g_sam_switch_obj, LV_STATE_CHECKED);
-    if (g_use_sam) {
-      lv_obj_clear_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_clear_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
-    } else {
-      lv_obj_add_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_add_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
-    }
-  }
-  if (g_res_label) lv_label_set_text(g_res_label, g_res_choice ? "1080p" : "720p");
   if (g_line_left) lv_obj_set_pos(g_line_left, g_line_left_x.load() - 4, CV_Y);
   if (g_line_right) lv_obj_set_pos(g_line_right, g_line_right_x.load() - 4, CV_Y);
   if (g_has_last) run_judgment(g_last_payload);
@@ -784,7 +679,6 @@ int run_ui_mode(const AppConfig &cfg) {
   g_box_class.store(config::g.box_class);
   g_line_left_x.store((int)(config::g.line_left_frac * CV_W));
   g_line_right_x.store((int)(config::g.line_right_frac * CV_W));
-  g_res_choice = config::g.default_res;
 
   /* 命令行输入路径覆盖配置文件 */
   if (!cfg.input_path.empty()) g_input_path = cfg.input_path;
@@ -941,15 +835,6 @@ int run_ui_mode(const AppConfig &cfg) {
   mk_fileinfo("模型文件:", g_yolo_label, 168, base_name(g_yolo_path));
   mk_fileinfo("标签文件:", g_label_label, 192, base_name(g_label_path));
   mk_fileinfo("输入源:", g_input_label, 216, base_name(g_input_path));
-  /* SAM enc/dec 行(默认隐藏，保留入口) */
-  g_samenc_row = lv_label_create(stats);
-  lv_label_set_text(g_samenc_row, "");
-  g_samdec_row = lv_label_create(stats);
-  lv_label_set_text(g_samdec_row, "");
-  lv_obj_add_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_add_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
-  g_samenc_label = g_samenc_row;
-  g_samdec_label = g_samdec_row;
 
   /* --- 信息输出(下)：单视图 + 两个切换按钮(运行日志 / 警告和报警) --- */
   lv_obj_t *logs = lv_obj_create(right);
