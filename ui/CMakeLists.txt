@@ -9,6 +9,7 @@ add_library(ui_lib STATIC
     ui_filebrowser.cpp
     ../core/frame_bus.cpp
     ../core/logger.cpp
+    ../core/ui_log.cpp
     ../core/config.cpp
 )
 target_include_directories(ui_lib PUBLIC

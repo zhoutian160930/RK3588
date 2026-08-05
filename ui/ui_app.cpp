@@ -16,6 +16,7 @@
 #include "image_process.h"
 #include "logger.h"
 #include "config.h"
+#include "ui_log.h"
 #include "mobilesam/mobilesam_pool.h"
 #include "rknn_pool.h"
 #include "ui_canvas.h"
@@ -31,12 +32,12 @@ namespace fs = std::filesystem;
 namespace {
 /* ---- 布局常量 ---- */
 constexpr int WIN_W = 1280, WIN_H = 720;
-constexpr int PANEL_W = 320;
-constexpr int LEFT_W = WIN_W - PANEL_W;
-/* canvas 固定显示+缓冲尺寸(16:9，去掉 zoom，方便竖线对齐) */
-constexpr int CV_W = LEFT_W;      /* 960 */
-constexpr int CV_H = LEFT_W * 9 / 16; /* 540 */
-constexpr int CV_Y = 0;           /* canvas 在 left 容器里的 y */
+constexpr int TOP_H = 48;              /* 顶部菜单按钮栏(标题用 SDL 窗口标题) */
+constexpr int PANEL_W = 460;           /* 右侧面板宽 */
+constexpr int LEFT_W = WIN_W - PANEL_W;/* 820 */
+constexpr int CV_W = LEFT_W;           /* canvas 宽 */
+constexpr int CV_H = LEFT_W * 9 / 16;  /* 461 */
+constexpr int CV_Y = 0;                /* canvas 在 left 容器里的 y */
 
 /* ---- 运行期状态 ---- */
 AppConfig g_cfg;
@@ -84,6 +85,9 @@ lv_obj_t *g_start_btn, *g_stop_btn;
 lv_obj_t *g_res_label;
 lv_obj_t *g_quit_btn;
 lv_obj_t *g_target_label;  /* 目标物料数(显示值) */
+lv_obj_t *g_info_box = nullptr;   /* 左下：当前图片物料信息(滚动) */
+lv_obj_t *g_log_view = nullptr;  /* 右下：日志视图(单栏，按按钮切换内容) */
+int g_log_mode = 0;              /* 0=运行日志(info) 1=警告和报警(warn+err) */
 
 std::string base_name(const std::string &p) {
   size_t s = p.find_last_of('/');
@@ -121,19 +125,22 @@ void on_fb_input(const char *path, void *) {
   g_input_path = trim_path(path);
   config::g.default_input = g_input_path;
   config::mark_dirty();
-  lv_label_set_text(g_input_label, base_name(path).c_str());
+  if (g_input_label) lv_label_set_text(g_input_label, base_name(path).c_str());
+  SPDLOG_INFO("输入源已选择: {}", g_input_path);
 }
 void on_fb_yolo(const char *path, void *) {
   g_yolo_path = trim_path(path);
   config::g.yolo_model = g_yolo_path;
   config::mark_dirty();
-  lv_label_set_text(g_yolo_label, base_name(path).c_str());
+  if (g_yolo_label) lv_label_set_text(g_yolo_label, base_name(path).c_str());
+  SPDLOG_INFO("YOLO 模型已切换: {}", g_yolo_path);
 }
 void on_fb_label(const char *path, void *) {
   g_label_path = trim_path(path);
   config::g.label_path = g_label_path;
   config::mark_dirty();
-  lv_label_set_text(g_label_label, base_name(path).c_str());
+  if (g_label_label) lv_label_set_text(g_label_label, base_name(path).c_str());
+  SPDLOG_INFO("标签文件已切换: {}", g_label_path);
 }
 void on_fb_samenc(const char *path, void *) {
   g_sam_enc_path = trim_path(path);
@@ -152,6 +159,49 @@ void open_input_browser(lv_event_t *) {
   ui_filebrowser_open(config::g.fb_input_dir.c_str(), ".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mkv", 1,
                       on_fb_input, NULL);
 }
+
+/* 输入源二选一弹出菜单：本地文件夹 / 摄像头 */
+static lv_obj_t *g_src_popup = nullptr;
+static void close_src_popup() {
+  if (g_src_popup) { lv_obj_del(g_src_popup); g_src_popup = nullptr; }
+}
+static void on_src_folder(lv_event_t *) {
+  close_src_popup();
+  ui_filebrowser_open(config::g.fb_input_dir.c_str(),
+                      ".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mkv", 1, on_fb_input, NULL);
+}
+static void on_src_camera(lv_event_t *) {
+  close_src_popup();
+  SPDLOG_INFO("输入源：摄像头(接口预留，尚未接入)");
+  if (g_input_label) lv_label_set_text(g_input_label, "摄像头(未接入)");
+}
+void open_input_source_menu(lv_event_t *) {
+  close_src_popup();
+  g_src_popup = lv_obj_create(lv_scr_act());
+  lv_obj_set_size(g_src_popup, 220, 130);
+  lv_obj_center(g_src_popup);
+  lv_obj_set_style_bg_color(g_src_popup, lv_color_white(), 0);
+  lv_obj_set_style_border_width(g_src_popup, 2, 0);
+  lv_obj_clear_flag(g_src_popup, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_t *tt = lv_label_create(g_src_popup);
+  lv_label_set_text(tt, "选择输入源");
+  lv_obj_align(tt, LV_ALIGN_TOP_MID, 0, 6);
+  lv_obj_t *b1 = lv_btn_create(g_src_popup);
+  lv_obj_set_size(b1, 180, 36);
+  lv_obj_align(b1, LV_ALIGN_TOP_MID, 0, 30);
+  lv_obj_t *l1 = lv_label_create(b1);
+  lv_label_set_text(l1, "本地文件夹");
+  lv_obj_center(l1);
+  lv_obj_add_event_cb(b1, on_src_folder, LV_EVENT_CLICKED, NULL);
+  lv_obj_t *b2 = lv_btn_create(g_src_popup);
+  lv_obj_set_size(b2, 180, 36);
+  lv_obj_align(b2, LV_ALIGN_TOP_MID, 0, 72);
+  lv_obj_t *l2 = lv_label_create(b2);
+  lv_label_set_text(l2, "摄像头(预留)");
+  lv_obj_center(l2);
+  lv_obj_add_event_cb(b2, on_src_camera, LV_EVENT_CLICKED, NULL);
+}
+
 void open_yolo_browser(lv_event_t *) {
   ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".rknn", 0, on_fb_yolo, NULL);
 }
@@ -730,186 +780,204 @@ int run_ui_mode(const AppConfig &cfg) {
   /* 命令行输入路径覆盖配置文件 */
   if (!cfg.input_path.empty()) g_input_path = cfg.input_path;
 
-  /* 左侧画布区 */
+  /* ===== 顶部：仅菜单按钮行(界面标题用 SDL 窗口标题，不在界面内显示) ===== */
+  lv_obj_t *topbar = lv_obj_create(lv_scr_act());
+  lv_obj_set_size(topbar, WIN_W, TOP_H);
+  lv_obj_set_pos(topbar, 0, 0);
+  lv_obj_set_style_bg_color(topbar, lv_color_make(28, 36, 56), 0);
+  lv_obj_set_style_pad_all(topbar, 4, 0);
+  lv_obj_set_style_border_width(topbar, 0, 0);
+  lv_obj_clear_flag(topbar, LV_OBJ_FLAG_SCROLLABLE);
+  lv_font_t *sfont = ui_font_small();
+  /* 按钮容器(靠左，宽度自适应内容) */
+  lv_obj_t *btns = lv_obj_create(topbar);
+  lv_obj_remove_style_all(btns);
+  lv_obj_set_height(btns, TOP_H - 8);
+  lv_obj_set_width(btns, LV_SIZE_CONTENT);
+  lv_obj_align(btns, LV_ALIGN_LEFT_MID, 4, 0);
+  lv_obj_set_flex_flow(btns, LV_FLEX_FLOW_ROW);
+  lv_obj_set_flex_align(btns, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER,
+                        LV_FLEX_ALIGN_CENTER);
+  lv_obj_set_style_pad_column(btns, 5, 0);
+  lv_obj_clear_flag(btns, LV_OBJ_FLAG_SCROLLABLE);
+  auto mk_topbtn = [&](const char *txt, lv_event_cb_t cb) {
+    lv_obj_t *b = lv_btn_create(btns);
+    lv_obj_set_height(b, 32);
+    lv_obj_set_width(b, LV_SIZE_CONTENT);  /* 自适应文字宽度，防吞字 */
+    lv_obj_t *l = lv_label_create(b);
+    lv_label_set_text(l, txt);
+    if (sfont) lv_obj_set_style_text_font(l, sfont, 0);
+    lv_obj_center(l);
+    if (cb) lv_obj_add_event_cb(b, cb, LV_EVENT_CLICKED, NULL);
+    return b;
+  };
+  mk_topbtn("YOLO模型", open_yolo_browser);
+  mk_topbtn("标签文件", open_label_browser);
+  mk_topbtn("输入源", open_input_source_menu);
+  g_start_btn = mk_topbtn("开始", on_start);
+  g_stop_btn = mk_topbtn("停止", on_stop);
+  lv_obj_add_state(g_stop_btn, LV_STATE_DISABLED);
+  g_quit_btn = mk_topbtn("退出", on_quit);
+
+  /* ===== 左侧：实时推理显示 + 当前物料信息 ===== */
   lv_obj_t *left = lv_obj_create(lv_scr_act());
-  lv_obj_set_size(left, LEFT_W, WIN_H);
-  lv_obj_set_style_bg_color(left, lv_color_make(20, 20, 20), 0);
-  lv_obj_set_style_border_width(left, 0, 0);
+  lv_obj_set_size(left, LEFT_W, WIN_H - TOP_H);
+  lv_obj_set_pos(left, 0, TOP_H);
+  lv_obj_set_style_bg_color(left, lv_color_make(18, 18, 18), 0);
   lv_obj_set_style_pad_all(left, 0, 0);
+  lv_obj_set_style_border_width(left, 0, 0);
   lv_obj_clear_flag(left, LV_OBJ_FLAG_SCROLLABLE);
   g_canvas = ui_canvas_create(left, CV_W, CV_H);
   lv_obj_set_pos(g_canvas, 0, CV_Y);
+  /* 左下：当前图片物料信息(滚动文本框) */
+  lv_obj_t *info_title = lv_label_create(left);
+  lv_label_set_text(info_title, "当前图片物料信息");
+  lv_obj_set_style_text_color(info_title, lv_color_make(170, 170, 170), 0);
+  if (sfont) lv_obj_set_style_text_font(info_title, sfont, 0);
+  lv_obj_align(info_title, LV_ALIGN_TOP_LEFT, 6, CV_H + 2);
+  g_info_box = lv_textarea_create(left);
+  lv_textarea_set_text(g_info_box, "");
+  lv_obj_set_size(g_info_box, LEFT_W - 12, WIN_H - TOP_H - CV_H - 30);
+  lv_obj_align(g_info_box, LV_ALIGN_BOTTOM_MID, 0, -4);
+  lv_textarea_set_cursor_click_pos(g_info_box, false);
+  if (sfont) lv_obj_set_style_text_font(g_info_box, sfont, 0);
 
-  /* 判定结果大标签(canvas 下方) */
-  g_judge_label = lv_label_create(left);
-  lv_label_set_text(g_judge_label, "等待开始...");
-  lv_label_set_recolor(g_judge_label, true);
-  lv_obj_set_style_text_color(g_judge_label, lv_color_white(), 0);
-  lv_obj_align(g_judge_label, LV_ALIGN_TOP_LEFT, 8, CV_H + 16);
+  /* ===== 右侧：生产统计 + 信息输出 ===== */
+  lv_obj_t *right = lv_obj_create(lv_scr_act());
+  lv_obj_set_size(right, PANEL_W, WIN_H - TOP_H);
+  lv_obj_set_pos(right, LEFT_W, TOP_H);
+  lv_obj_set_style_pad_all(right, 6, 0);
+  lv_obj_set_style_border_width(right, 0, 0);
+  lv_obj_clear_flag(right, LV_OBJ_FLAG_SCROLLABLE);
 
-  /* 累计 正确/错误 物料数(实时更新) */
-  g_stat_label = lv_label_create(left);
+  /* --- 生产统计(上) --- */
+  constexpr int STATS_H = 300;
+  lv_obj_t *stats = lv_obj_create(right);
+  lv_obj_set_size(stats, PANEL_W - 12, STATS_H);
+  lv_obj_align(stats, LV_ALIGN_TOP_MID, 0, 0);
+  lv_obj_set_style_pad_all(stats, 6, 0);
+  lv_obj_set_style_border_width(stats, 1, 0);
+  lv_obj_t *st_title = lv_label_create(stats);
+  lv_label_set_text(st_title, "生产统计");
+  lv_obj_align(st_title, LV_ALIGN_TOP_MID, 0, 0);
+  /* 正确/错误 大数字 */
+  g_stat_label = lv_label_create(stats);
   lv_label_set_recolor(g_stat_label, true);
-  lv_label_set_text(g_stat_label, "正确: 0  错误: 0");
-  lv_obj_align(g_stat_label, LV_ALIGN_TOP_LEFT, 8, CV_H + 56);
-
-  /* 右侧控制面板 */
-  lv_obj_t *panel = lv_obj_create(lv_scr_act());
-  lv_obj_set_size(panel, PANEL_W, WIN_H);
-  lv_obj_set_pos(panel, LEFT_W, 0);
-  lv_obj_set_style_pad_all(panel, 8, 0);
-  lv_obj_t *pt = lv_label_create(panel);
-  lv_label_set_text(pt, "YOLO 推理控制台");
-  lv_obj_align(pt, LV_ALIGN_TOP_MID, 0, 0);
-
-  /* 预填当前值标签 */
-  lv_obj_t *r1 = add_row(panel, "输入源(图/视频/目录)", &g_input_label,
-                         open_input_browser, "选");
-  lv_obj_align(r1, LV_ALIGN_TOP_MID, 0, 24);
-  lv_label_set_text(g_input_label, base_name(g_input_path).c_str());
-
-  lv_obj_t *r2 = add_row(panel, "YOLO 模型(.rknn)", &g_yolo_label,
-                         open_yolo_browser, "选");
-  lv_obj_align_to(r2, r1, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
-  lv_label_set_text(g_yolo_label, base_name(g_yolo_path).c_str());
-
-  lv_obj_t *r3 = add_row(panel, "标签文件(.txt)", &g_label_label,
-                         open_label_browser, "选");
-  lv_obj_align_to(r3, r2, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
-  lv_label_set_text(g_label_label, base_name(g_label_path).c_str());
-
-  /* SAM 开关 */
-  lv_obj_t *sam_row = lv_obj_create(panel);
-  lv_obj_set_size(sam_row, PANEL_W - 20, 44);
-  lv_obj_set_style_pad_all(sam_row, 2, 0);
-  lv_obj_set_style_border_width(sam_row, 0, 0);
-  lv_obj_clear_flag(sam_row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_align_to(sam_row, r3, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
-  lv_obj_t *sl = lv_label_create(sam_row);
-  lv_label_set_text(sl, "SAM 分割(掩膜存文件)");
-  lv_obj_align(sl, LV_ALIGN_LEFT_MID, 0, 0);
-  lv_obj_t *sw = lv_switch_create(sam_row);
-  lv_obj_align(sw, LV_ALIGN_RIGHT_MID, 0, 0);
-  lv_obj_add_state(sw, g_use_sam ? LV_STATE_CHECKED : 0);
-  lv_obj_add_event_cb(sw, on_sam_toggle, LV_EVENT_VALUE_CHANGED, NULL);
-  g_sam_switch_obj = sw;
-
-  g_samenc_row = add_row(panel, "SAM encoder(.rknn)", &g_samenc_label,
-                         open_samenc_browser, "选");
-  lv_obj_align_to(g_samenc_row, sam_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
-  g_samdec_row = add_row(panel, "SAM decoder(.rknn)", &g_samdec_label,
-                         open_samdec_browser, "选");
-  lv_obj_align_to(g_samdec_row, g_samenc_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
-  lv_obj_add_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_add_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
-
-  /* 目标物料数：- [值] +  (纯鼠标点击可调，不依赖编码器/滚轮) */
-  lv_obj_t *res_row = lv_obj_create(panel);
-  lv_obj_set_size(res_row, PANEL_W - 20, 44);
-  lv_obj_set_style_pad_all(res_row, 2, 0);
-  lv_obj_set_style_border_width(res_row, 0, 0);
-  lv_obj_clear_flag(res_row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_align_to(res_row, g_samdec_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 4);
-  lv_obj_t *tl2 = lv_label_create(res_row);
+  lv_label_set_text(g_stat_label, "#00FF00 正确:0#  #FF3030 错误:0#");
+  lv_obj_align(g_stat_label, LV_ALIGN_TOP_LEFT, 6, 26);
+  /* 当前帧判定结果 */
+  g_judge_label = lv_label_create(stats);
+  lv_label_set_recolor(g_judge_label, true);
+  lv_label_set_text(g_judge_label, "等待...");
+  lv_obj_align(g_judge_label, LV_ALIGN_TOP_LEFT, 6, 58);
+  /* 状态行 */
+  g_status_label = lv_label_create(stats);
+  lv_label_set_text(g_status_label, "状态: 待机");
+  lv_obj_align(g_status_label, LV_ALIGN_TOP_LEFT, 6, 86);
+  /* 目标物料数 +/- */
+  lv_obj_t *tl2 = lv_label_create(stats);
   lv_label_set_text(tl2, "目标物料数");
-  lv_obj_align(tl2, LV_ALIGN_LEFT_MID, 0, 0);
-
-  g_target_label = lv_label_create(res_row);
-  char tbuf[16];
-  snprintf(tbuf, sizeof(tbuf), "%d", g_target_count.load());
-  lv_label_set_text(g_target_label, tbuf);
-  lv_obj_align(g_target_label, LV_ALIGN_RIGHT_MID, -84, 0);
-
-  auto refresh_tgt = []() {
+  lv_obj_align(tl2, LV_ALIGN_TOP_LEFT, 6, 112);
+  g_target_label = lv_label_create(stats);
+  {
     char b[16];
     snprintf(b, sizeof(b), "%d", g_target_count.load());
-    if (g_target_label) lv_label_set_text(g_target_label, b);
+    lv_label_set_text(g_target_label, b);
+  }
+  lv_obj_align(g_target_label, LV_ALIGN_TOP_LEFT, 150, 112);
+  auto tgt_btn = [&](const char *txt, int x, bool plus) {
+    lv_obj_t *b = lv_btn_create(stats);
+    lv_obj_set_size(b, 32, 30);
+    lv_obj_align(b, LV_ALIGN_TOP_LEFT, x, 108);
+    lv_obj_t *l = lv_label_create(b);
+    lv_label_set_text(l, txt);
+    lv_obj_center(l);
+    lv_obj_add_event_cb(
+        b,
+        +[](lv_event_t *e) {
+          lv_obj_t *btn = (lv_obj_t *)lv_event_get_target(e);
+          bool plus2 = (bool)(intptr_t)lv_event_get_user_data(e);
+          int v = g_target_count.load();
+          if (plus2 && v < 999) g_target_count.store(v + 1);
+          if (!plus2 && v > 1) g_target_count.store(v - 1);
+          config::g.target_count = g_target_count.load();
+          config::mark_dirty();
+          char bb[16];
+          snprintf(bb, sizeof(bb), "%d", g_target_count.load());
+          if (g_target_label) lv_label_set_text(g_target_label, bb);
+        },
+        LV_EVENT_CLICKED, (void *)(intptr_t)plus);
+    return b;
   };
-  lv_obj_t *minus_btn = lv_btn_create(res_row);
-  lv_obj_set_size(minus_btn, 36, 34);
-  lv_obj_align(minus_btn, LV_ALIGN_RIGHT_MID, -44, 0);
-  lv_obj_t *ml = lv_label_create(minus_btn);
-  lv_label_set_text(ml, "-");
-  lv_obj_center(ml);
-  lv_obj_add_event_cb(
-      minus_btn,
-      [](lv_event_t *) {
-        int v = g_target_count.load();
-        if (v > 1) g_target_count.store(v - 1);
-        config::g.target_count = g_target_count.load();
-        config::mark_dirty();
-        char b[16];
-        snprintf(b, sizeof(b), "%d", g_target_count.load());
-        if (g_target_label) lv_label_set_text(g_target_label, b);
-      },
-      LV_EVENT_CLICKED, NULL);
-  lv_obj_t *plus_btn = lv_btn_create(res_row);
-  lv_obj_set_size(plus_btn, 36, 34);
-  lv_obj_align(plus_btn, LV_ALIGN_RIGHT_MID, 0, 0);
-  lv_obj_t *pl = lv_label_create(plus_btn);
-  lv_label_set_text(pl, "+");
-  lv_obj_center(pl);
-  lv_obj_add_event_cb(
-      plus_btn,
-      [](lv_event_t *) {
-        int v = g_target_count.load();
-        if (v < 999) g_target_count.store(v + 1);
-        config::g.target_count = g_target_count.load();
-        config::mark_dirty();
-        char b[16];
-        snprintf(b, sizeof(b), "%d", g_target_count.load());
-        if (g_target_label) lv_label_set_text(g_target_label, b);
-      },
-      LV_EVENT_CLICKED, NULL);
-  (void)refresh_tgt;
+  tgt_btn("-", 200, false);
+  tgt_btn("+", 240, true);
+  /* SAM 分割：已从界面移除(如需改 use_sam 请编辑 config.json) */
+  /* 当前选择(model/label/input) 小标签 */
+  g_yolo_label = lv_label_create(stats);
+  lv_label_set_text(g_yolo_label, base_name(g_yolo_path).c_str());
+  lv_obj_align(g_yolo_label, LV_ALIGN_TOP_LEFT, 6, 184);
+  g_label_label = lv_label_create(stats);
+  lv_label_set_text(g_label_label, base_name(g_label_path).c_str());
+  lv_obj_align(g_label_label, LV_ALIGN_TOP_LEFT, 6, 204);
+  g_input_label = lv_label_create(stats);
+  lv_label_set_text(g_input_label, base_name(g_input_path).c_str());
+  lv_obj_align(g_input_label, LV_ALIGN_TOP_LEFT, 6, 224);
+  /* SAM enc/dec 行(默认隐藏，保留入口) */
+  g_samenc_row = lv_label_create(stats);
+  lv_label_set_text(g_samenc_row, "");
+  g_samdec_row = lv_label_create(stats);
+  lv_label_set_text(g_samdec_row, "");
+  lv_obj_add_flag(g_samenc_row, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_add_flag(g_samdec_row, LV_OBJ_FLAG_HIDDEN);
+  g_samenc_label = g_samenc_row;
+  g_samdec_label = g_samdec_row;
 
-  /* 开始 / 停止 */
-  lv_obj_t *btn_row = lv_obj_create(panel);
-  lv_obj_set_size(btn_row, PANEL_W - 20, 48);
-  lv_obj_set_style_pad_all(btn_row, 2, 0);
-  lv_obj_set_style_border_width(btn_row, 0, 0);
-  lv_obj_clear_flag(btn_row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_set_flex_flow(btn_row, LV_FLEX_FLOW_ROW);
-  lv_obj_set_style_pad_column(btn_row, 6, 0);
-  lv_obj_align_to(btn_row, res_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
-
-  /* 预览标定：选一张图显示，便于拖线标定 */
-  lv_obj_t *prev_btn = lv_btn_create(btn_row);
-  lv_obj_set_size(prev_btn, 90, 40);
-  lv_obj_t *plb = lv_label_create(prev_btn);
-  lv_label_set_text(plb, "预览");
-  lv_obj_center(plb);
-  lv_obj_add_event_cb(prev_btn, open_preview_browser, LV_EVENT_CLICKED, NULL);
-
-  g_start_btn = lv_btn_create(btn_row);
-  lv_obj_set_size(g_start_btn, 90, 40);
-  lv_obj_t *slb = lv_label_create(g_start_btn);
-  lv_label_set_text(slb, "开始");
-  lv_obj_center(slb);
-  lv_obj_add_event_cb(g_start_btn, on_start, LV_EVENT_CLICKED, NULL);
-  g_stop_btn = lv_btn_create(btn_row);
-  lv_obj_set_size(g_stop_btn, 90, 40);
-  lv_obj_t *spb = lv_label_create(g_stop_btn);
-  lv_label_set_text(spb, "停止");
-  lv_obj_center(spb);
-  lv_obj_add_state(g_stop_btn, LV_STATE_DISABLED);
-  lv_obj_add_event_cb(g_stop_btn, on_stop, LV_EVENT_CLICKED, NULL);
-
-  /* 状态 */
-  g_status_label = lv_label_create(panel);
-  lv_obj_align_to(g_status_label, btn_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 8);
-  update_status_text();
-
-  /* 退出 */
-  g_quit_btn = lv_btn_create(panel);
-  lv_obj_set_size(g_quit_btn, PANEL_W - 20, 36);
-  lv_obj_align(g_quit_btn, LV_ALIGN_BOTTOM_MID, 0, -4);
-  lv_obj_t *ql = lv_label_create(g_quit_btn);
-  lv_label_set_text(ql, "退出");
-  lv_obj_center(ql);
-  lv_obj_add_event_cb(g_quit_btn, on_quit, LV_EVENT_CLICKED, NULL);
+  /* --- 信息输出(下)：单视图 + 两个切换按钮(运行日志 / 警告和报警) --- */
+  lv_obj_t *logs = lv_obj_create(right);
+  lv_obj_set_size(logs, PANEL_W - 12, WIN_H - TOP_H - STATS_H - 12);
+  lv_obj_align(logs, LV_ALIGN_BOTTOM_MID, 0, 0);
+  lv_obj_set_style_pad_all(logs, 4, 0);
+  lv_obj_set_style_border_width(logs, 1, 0);
+  lv_obj_clear_flag(logs, LV_OBJ_FLAG_SCROLLABLE);
+  lv_font_t *sfl = ui_font_small();
+  auto logbtn = [&](const char *txt, int x, int mode) {
+    lv_obj_t *b = lv_btn_create(logs);
+    lv_obj_set_height(b, 28);
+    lv_obj_set_width(b, LV_SIZE_CONTENT);
+    lv_obj_align(b, LV_ALIGN_TOP_LEFT, x, 2);
+    lv_obj_t *l = lv_label_create(b);
+    lv_label_set_text(l, txt);
+    if (sfl) lv_obj_set_style_text_font(l, sfl, 0);
+    lv_obj_center(l);
+    lv_obj_add_event_cb(
+        b,
+        +[](lv_event_t *e) {
+          g_log_mode = (int)(intptr_t)lv_event_get_user_data(e);
+        },
+        LV_EVENT_CLICKED, (void *)(intptr_t)mode);
+    return b;
+  };
+  logbtn("运行日志", 4, 0);
+  logbtn("警告和报警", 130, 1);
+  /* 单个日志视图(占满剩余高度) */
+  g_log_view = lv_textarea_create(logs);
+  lv_textarea_set_text(g_log_view, "");
+  lv_obj_set_size(g_log_view, lv_pct(100), WIN_H - TOP_H - STATS_H - 12 - 40);
+  lv_obj_align(g_log_view, LV_ALIGN_BOTTOM_MID, 0, 0);
+  lv_textarea_set_cursor_click_pos(g_log_view, false);
+  if (sfl) lv_obj_set_style_text_font(g_log_view, sfl, 0);
 
   apply_resolution();
+
+  /* 日志栏滚动缓冲(只保留末尾若干字符) */
+  std::string log_info_buf, log_dbgerr_buf;
+  auto append_log = [](std::string &buf, const std::vector<std::string> &lines) {
+    for (auto &l : lines) {
+      buf.append(l);
+      buf.append("\n");
+    }
+    if (buf.size() > 4000) buf.erase(0, buf.size() - 4000);
+  };
 
   /* 主循环：永不因推理完成退出，只在 退出按钮 时结束。
    * 存最近一帧，每轮用当前竖线/目标值重判 → 拖线时判定实时更新。 */
@@ -922,12 +990,44 @@ int run_ui_mode(const AppConfig &cfg) {
     }
     if (g_has_last) run_judgment(g_last_payload);
 
+    /* 当前图片物料信息框(每帧刷新：每盒明细) */
+    if (g_info_box && g_has_last) {
+      std::string info;
+      auto &res = g_last_payload.results;
+      int bc = g_box_class.load(), mc = g_material_class.load(), tgt = g_target_count.load();
+      float llf = g_line_left_x.load() / (float)CV_W;
+      float rrf = g_line_right_x.load() / (float)CV_W;
+      auto boxes = judge_all_boxes(res, g_last_payload.orig_w, llf, rrf, tgt, bc, mc);
+      int idx = 1;
+      for (auto &b : boxes) {
+        char line[128];
+        const char *st = !b.revealed ? "未漏出"
+                         : b.full    ? "满"
+                                     : "未满";
+        snprintf(line, sizeof(line), "盒%d: 物料%d/%d %s\n", idx++,
+                 b.revealed ? b.material_count : 0, tgt, st);
+        info.append(line);
+      }
+      if (info.empty()) info = "(无盒子)";
+      lv_textarea_set_text(g_info_box, info.c_str());
+    }
+
     /* 实时刷新累计 正确/错误 计数 */
     if (g_stat_label) {
       char sb[64];
       snprintf(sb, sizeof(sb), "#00FF00 正确: %d#    #FF3030 错误: %d#",
                g_correct_count.load(), g_wrong_count.load());
       lv_label_set_text(g_stat_label, sb);
+    }
+
+    /* 日志：双缓冲都追加，按当前模式显示对应内容 */
+    append_log(log_info_buf, ui_log::take_info());
+    append_log(log_dbgerr_buf, ui_log::take_dbgerr());
+    if (g_log_view) {
+      const std::string &shown =
+          (g_log_mode == 0) ? log_info_buf : log_dbgerr_buf;
+      lv_textarea_set_text(g_log_view, shown.c_str());
+      lv_textarea_set_cursor_pos(g_log_view, LV_TEXTAREA_CURSOR_LAST);
     }
 
     if (g_state != ST_RUNNING && config::poll_hot_reload())

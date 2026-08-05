@@ -16,7 +16,19 @@
 #define CN_FONT_REPO "/home/ubuntu/lvgl/yolov8/fonts/NotoSansCJK-Regular.ttc"
 #define CN_FONT_SYS "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 
-static lv_font_t *s_cn_font = NULL;
+static lv_font_t *s_cn_font = NULL;     /* 常规 22px */
+static lv_font_t *s_cn_font_small = NULL; /* 小号 16px(按钮/日志) */
+
+static lv_font_t *create_font(const char *path, uint16_t weight) {
+  lv_ft_info_t info;
+  memset(&info, 0, sizeof(info));
+  info.name = path;
+  info.weight = weight;
+  info.style = FT_FONT_STYLE_NORMAL;
+  if (lv_ft_font_init(&info)) return info.font;
+  return NULL;
+}
+
 static void load_chinese_font(void) {
   const char *path = NULL;
   if (!config::g.font_path.empty() && access(config::g.font_path.c_str(), R_OK) == 0)
@@ -26,18 +38,16 @@ static void load_chinese_font(void) {
   else
     path = CN_FONT_SYS;
   lv_freetype_init(4, 4, 1 * 1024 * 1024);
-  lv_ft_info_t info;
-  memset(&info, 0, sizeof(info));
-  info.name = path;
-  info.weight = 22;
-  info.style = FT_FONT_STYLE_NORMAL;
-  if (lv_ft_font_init(&info)) {
-    s_cn_font = info.font;
+  s_cn_font = create_font(path, 22);
+  s_cn_font_small = create_font(path, 16);
+  if (s_cn_font) {
     lv_obj_set_style_text_font(lv_scr_act(), s_cn_font, 0);
   } else {
     fprintf(stderr, "[ui] load Chinese font failed: %s\n", path);
   }
 }
+
+lv_font_t *ui_font_small(void) { return s_cn_font_small; }
 
 static lv_disp_drv_t s_disp_drv;
 static lv_disp_draw_buf_t s_draw_buf;
