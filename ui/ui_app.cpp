@@ -379,18 +379,19 @@ void worker_fn() {
     int bc = g_box_class.load(), mc = g_material_class.load();
     auto boxes = judge_all_boxes(r.results, out.cols, llf, rrf, target, bc, mc);
     JudgeSummary sum = summarize(boxes);
-    /* 累计正确/错误：完全漏出的盒子，full(物料数==目标)为正确，否则错误 */
-    for (auto &b : boxes) {
-      if (!b.revealed) continue;
-      if (b.full) g_correct_count.fetch_add(1);
-      else g_wrong_count.fetch_add(1);
+    /* 本帧合格判定(唯一来源)：检测区内有满料盒且无未满盒 → 合格。
+     * 区外未漏出的盒子不计入。下面的统计/CAN/日志全部用这个结果。 */
+    bool qualified = (sum.full > 0 && sum.not_full == 0);
+    /* 累计正确/错误(按帧)：合格帧计入正确，不合格帧计入错误 */
+    if (sum.total > 0) {
+      if (qualified)
+        g_correct_count.fetch_add(1);
+      else
+        g_wrong_count.fetch_add(1);
     }
-    /* CAN 结果发送：只看"检测区内(已漏出)"的盒子——有满料且无未满 →满足=0，否则=1。
-     * 区外未漏出的盒子不计入(它还没进检测区)。 */
-    if (config::g.can_enabled) {
-      bool ok = (sum.full > 0 && sum.not_full == 0);
-      can_bus::send_result(ok);
-    }
+    /* CAN 直接发送合格判定结果，不再二次判断 */
+    if (config::g.can_enabled) can_bus::send_result(qualified);
+    SPDLOG_INFO("frame {} 合格={}", g_proc_count.load(), qualified);
     int ll = (int)(llf * out.cols), rr = (int)(rrf * out.cols);
     cv::line(out, cv::Point(ll, 0), cv::Point(ll, out.rows),
              cv::Scalar(255, 255, 0), 2);  /* 左线 青 */
