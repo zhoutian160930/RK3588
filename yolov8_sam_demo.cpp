@@ -16,6 +16,7 @@
 #include "app_config.h"
 #include "config.h"
 #include "logger.h"
+#include "can_bus.h"
 #include <spdlog/spdlog.h>
 #endif
 typedef std::chrono::high_resolution_clock Clock;
@@ -37,6 +38,9 @@ int main(int argc, char **argv) {
                 config::g.material_class, config::g.box_class,
                 config::g.target_count, config::g.line_left_frac,
                 config::g.line_right_frac);
+    if (config::g.can_enabled)
+        can_bus::init(config::g.can_send_if, config::g.can_recv_if,
+                      config::g.can_id);
     /* 无参数直接启动 UI（输入源在界面内用文件浏览器选择） */
     if (argc < 2) {
         AppConfig cfg;

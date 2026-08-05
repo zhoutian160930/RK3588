@@ -16,6 +16,7 @@
 #include "image_process.h"
 #include "logger.h"
 #include "config.h"
+#include "can_bus.h"
 #include "ui_log.h"
 #include "mobilesam/mobilesam_pool.h"
 #include "rknn_pool.h"
@@ -384,6 +385,12 @@ void worker_fn() {
       if (b.full) g_correct_count.fetch_add(1);
       else g_wrong_count.fetch_add(1);
     }
+    /* CAN 结果发送：只看"检测区内(已漏出)"的盒子——有满料且无未满 →满足=0，否则=1。
+     * 区外未漏出的盒子不计入(它还没进检测区)。 */
+    if (config::g.can_enabled) {
+      bool ok = (sum.full > 0 && sum.not_full == 0);
+      can_bus::send_result(ok);
+    }
     int ll = (int)(llf * out.cols), rr = (int)(rrf * out.cols);
     cv::line(out, cv::Point(ll, 0), cv::Point(ll, out.rows),
              cv::Scalar(255, 255, 0), 2);  /* 左线 青 */
@@ -680,6 +687,7 @@ void on_sam_toggle(lv_event_t *e) {
 void on_quit(lv_event_t *) {
   g_stop = true;
   if (g_worker.joinable()) g_worker.join();
+  can_bus::shutdown();
   exit(0);
 }
 

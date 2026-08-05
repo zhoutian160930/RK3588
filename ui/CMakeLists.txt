@@ -11,6 +11,7 @@ add_library(ui_lib STATIC
     ../core/logger.cpp
     ../core/ui_log.cpp
     ../core/config.cpp
+    ../core/can_bus.cpp
 )
 target_include_directories(ui_lib PUBLIC
     ${CMAKE_SOURCE_DIR}

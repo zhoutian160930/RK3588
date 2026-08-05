@@ -27,6 +27,11 @@ struct Config {
   int ui_height = 720;
   int panel_width = 320;
   int default_res = 0;
+  /* CAN 通信 */
+  bool can_enabled = true;            /* 是否启用 CAN 结果发送 */
+  std::string can_send_if = "can0";   /* 发送接口 */
+  std::string can_recv_if = "can1";   /* 接收接口(本地回环测试) */
+  int can_id = 0x300;                 /* 标准 11-bit CAN ID */
 };
 
 namespace config {
