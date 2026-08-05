@@ -104,6 +104,13 @@ int ui_init(int width, int height) {
   kb_drv.read_cb = sdl_keyboard_read;
   lv_indev_drv_register(&kb_drv);
 
+  /* 鼠标滚轮(编码器)：用于滚动日志/物料信息等文本框 */
+  static lv_indev_drv_t wheel_drv;
+  lv_indev_drv_init(&wheel_drv);
+  wheel_drv.type = LV_INDEV_TYPE_ENCODER;
+  wheel_drv.read_cb = sdl_mousewheel_read;
+  lv_indev_drv_register(&wheel_drv);
+
   return 0;
 }
 

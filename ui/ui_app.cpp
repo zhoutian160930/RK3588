@@ -829,9 +829,9 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_obj_clear_flag(left, LV_OBJ_FLAG_SCROLLABLE);
   g_canvas = ui_canvas_create(left, CV_W, CV_H);
   lv_obj_set_pos(g_canvas, 0, CV_Y);
-  /* 左下：当前图片物料信息(滚动文本框) */
+  /* 左下：物料信息(每图追加一行) */
   lv_obj_t *info_title = lv_label_create(left);
-  lv_label_set_text(info_title, "当前图片物料信息");
+  lv_label_set_text(info_title, "物料信息");
   lv_obj_set_style_text_color(info_title, lv_color_make(170, 170, 170), 0);
   if (sfont) lv_obj_set_style_text_font(info_title, sfont, 0);
   lv_obj_align(info_title, LV_ALIGN_TOP_LEFT, 6, CV_H + 2);
@@ -875,20 +875,23 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_label_set_text(g_status_label, "状态: 待机");
   lv_obj_align(g_status_label, LV_ALIGN_TOP_LEFT, 6, 86);
   /* 目标物料数 +/- */
+  /* 目标物料数 +/- (下移，避开状态行) */
   lv_obj_t *tl2 = lv_label_create(stats);
   lv_label_set_text(tl2, "目标物料数");
-  lv_obj_align(tl2, LV_ALIGN_TOP_LEFT, 6, 112);
+  lv_obj_align(tl2, LV_ALIGN_TOP_LEFT, 6, 128);
+  if (sfont) lv_obj_set_style_text_font(tl2, sfont, 0);
   g_target_label = lv_label_create(stats);
   {
     char b[16];
     snprintf(b, sizeof(b), "%d", g_target_count.load());
     lv_label_set_text(g_target_label, b);
   }
-  lv_obj_align(g_target_label, LV_ALIGN_TOP_LEFT, 150, 112);
+  lv_obj_align(g_target_label, LV_ALIGN_TOP_LEFT, 150, 128);
+  if (sfont) lv_obj_set_style_text_font(g_target_label, sfont, 0);
   auto tgt_btn = [&](const char *txt, int x, bool plus) {
     lv_obj_t *b = lv_btn_create(stats);
     lv_obj_set_size(b, 32, 30);
-    lv_obj_align(b, LV_ALIGN_TOP_LEFT, x, 108);
+    lv_obj_align(b, LV_ALIGN_TOP_LEFT, x, 124);
     lv_obj_t *l = lv_label_create(b);
     lv_label_set_text(l, txt);
     lv_obj_center(l);
@@ -912,16 +915,23 @@ int run_ui_mode(const AppConfig &cfg) {
   tgt_btn("-", 200, false);
   tgt_btn("+", 240, true);
   /* SAM 分割：已从界面移除(如需改 use_sam 请编辑 config.json) */
-  /* 当前选择(model/label/input) 小标签 */
-  g_yolo_label = lv_label_create(stats);
-  lv_label_set_text(g_yolo_label, base_name(g_yolo_path).c_str());
-  lv_obj_align(g_yolo_label, LV_ALIGN_TOP_LEFT, 6, 184);
-  g_label_label = lv_label_create(stats);
-  lv_label_set_text(g_label_label, base_name(g_label_path).c_str());
-  lv_obj_align(g_label_label, LV_ALIGN_TOP_LEFT, 6, 204);
-  g_input_label = lv_label_create(stats);
-  lv_label_set_text(g_input_label, base_name(g_input_path).c_str());
-  lv_obj_align(g_input_label, LV_ALIGN_TOP_LEFT, 6, 224);
+  /* 当前文件信息：模型文件 / 标签文件 / 输入源 (前缀 + 文件名) */
+  auto mk_fileinfo = [&](const char *prefix, lv_obj_t *&val_lbl, int y,
+                         const std::string &val) {
+    lv_obj_t *p = lv_label_create(stats);
+    lv_label_set_text(p, prefix);
+    lv_obj_align(p, LV_ALIGN_TOP_LEFT, 6, y);
+    if (sfont) lv_obj_set_style_text_font(p, sfont, 0);
+    val_lbl = lv_label_create(stats);
+    lv_label_set_text(val_lbl, val.c_str());
+    lv_obj_align(val_lbl, LV_ALIGN_TOP_LEFT, 96, y);
+    if (sfont) lv_obj_set_style_text_font(val_lbl, sfont, 0);
+    lv_obj_set_width(val_lbl, PANEL_W - 110);
+    lv_label_set_long_mode(val_lbl, LV_LABEL_LONG_DOT);
+  };
+  mk_fileinfo("模型文件:", g_yolo_label, 168, base_name(g_yolo_path));
+  mk_fileinfo("标签文件:", g_label_label, 192, base_name(g_label_path));
+  mk_fileinfo("输入源:", g_input_label, 216, base_name(g_input_path));
   /* SAM enc/dec 行(默认隐藏，保留入口) */
   g_samenc_row = lv_label_create(stats);
   lv_label_set_text(g_samenc_row, "");
@@ -971,6 +981,9 @@ int run_ui_mode(const AppConfig &cfg) {
 
   /* 日志栏滚动缓冲(只保留末尾若干字符) */
   std::string log_info_buf, log_dbgerr_buf;
+  int last_log_mode = -1;            /* 检测日志模式切换 */
+  std::string info_buf;              /* 物料信息历史(每图追加一行) */
+  int info_idx = 0;
   auto append_log = [](std::string &buf, const std::vector<std::string> &lines) {
     for (auto &l : lines) {
       buf.append(l);
@@ -987,30 +1000,35 @@ int run_ui_mode(const AppConfig &cfg) {
       g_last_payload = payload;
       g_has_last = true;
       ui_canvas_set_bgr(payload.frame);
+      /* 物料信息：每处理一张图追加一行(图1: ... / 图2: ...) */
+      if (g_info_box) {
+        info_idx++;
+        std::string line = "图" + std::to_string(info_idx) + ": ";
+        int bc = g_box_class.load(), mc = g_material_class.load();
+        int tgt = g_target_count.load();
+        float llf = g_line_left_x.load() / (float)CV_W;
+        float rrf = g_line_right_x.load() / (float)CV_W;
+        auto boxes = judge_all_boxes(payload.results, payload.orig_w, llf, rrf,
+                                     tgt, bc, mc);
+        int bi = 1;
+        for (auto &b : boxes) {
+          const char *st = !b.revealed ? "未漏出"
+                           : b.full    ? "满"
+                                       : "未满";
+          char lb[96];
+          snprintf(lb, sizeof(lb), "盒%d(%d/%d)%s ", bi++,
+                   b.revealed ? b.material_count : 0, tgt, st);
+          line += lb;
+        }
+        if (boxes.empty()) line += "(无盒子)";
+        info_buf.append(line);
+        info_buf.append("\n");
+        if (info_buf.size() > 4000) info_buf.erase(0, info_buf.size() - 4000);
+        lv_textarea_set_text(g_info_box, info_buf.c_str());
+        lv_textarea_set_cursor_pos(g_info_box, LV_TEXTAREA_CURSOR_LAST);
+      }
     }
     if (g_has_last) run_judgment(g_last_payload);
-
-    /* 当前图片物料信息框(每帧刷新：每盒明细) */
-    if (g_info_box && g_has_last) {
-      std::string info;
-      auto &res = g_last_payload.results;
-      int bc = g_box_class.load(), mc = g_material_class.load(), tgt = g_target_count.load();
-      float llf = g_line_left_x.load() / (float)CV_W;
-      float rrf = g_line_right_x.load() / (float)CV_W;
-      auto boxes = judge_all_boxes(res, g_last_payload.orig_w, llf, rrf, tgt, bc, mc);
-      int idx = 1;
-      for (auto &b : boxes) {
-        char line[128];
-        const char *st = !b.revealed ? "未漏出"
-                         : b.full    ? "满"
-                                     : "未满";
-        snprintf(line, sizeof(line), "盒%d: 物料%d/%d %s\n", idx++,
-                 b.revealed ? b.material_count : 0, tgt, st);
-        info.append(line);
-      }
-      if (info.empty()) info = "(无盒子)";
-      lv_textarea_set_text(g_info_box, info.c_str());
-    }
 
     /* 实时刷新累计 正确/错误 计数 */
     if (g_stat_label) {
@@ -1020,14 +1038,20 @@ int run_ui_mode(const AppConfig &cfg) {
       lv_label_set_text(g_stat_label, sb);
     }
 
-    /* 日志：双缓冲都追加，按当前模式显示对应内容 */
-    append_log(log_info_buf, ui_log::take_info());
-    append_log(log_dbgerr_buf, ui_log::take_dbgerr());
-    if (g_log_view) {
+    /* 日志：双缓冲都追加；仅在 有新内容 或 切换模式 时刷新视图，
+     * 其余时间不动 → 允许鼠标上下拖动/滚轮查看历史。 */
+    auto ni = ui_log::take_info();
+    auto nd = ui_log::take_dbgerr();
+    append_log(log_info_buf, ni);
+    append_log(log_dbgerr_buf, nd);
+    bool mode_changed = (g_log_mode != last_log_mode);
+    bool cur_new = (g_log_mode == 0 ? !ni.empty() : !nd.empty());
+    if (g_log_view && (mode_changed || cur_new)) {
       const std::string &shown =
           (g_log_mode == 0) ? log_info_buf : log_dbgerr_buf;
       lv_textarea_set_text(g_log_view, shown.c_str());
       lv_textarea_set_cursor_pos(g_log_view, LV_TEXTAREA_CURSOR_LAST);
+      last_log_mode = g_log_mode;
     }
 
     if (g_state != ST_RUNNING && config::poll_hot_reload())
