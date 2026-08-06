@@ -20,5 +20,11 @@
   "ui_width": 1280,
   "ui_height": 720,
   "panel_width": 320,
-  "default_res": 0
+  "default_res": 0,
+  "can_enabled": true,
+  "can_send_if": "can0",
+  "can_recv_if": "can1",
+  "can_id": 768,
+  "gpio_enabled": true,
+  "gpio_pin": 500
 }

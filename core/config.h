@@ -32,7 +32,12 @@ struct Config {
   std::string can_send_if = "can0";   /* 发送接口 */
   std::string can_recv_if = "can1";   /* 接收接口(本地回环测试) */
   int can_id = 0x300;                 /* 标准 11-bit CAN ID */
-  /* GPIO 结果输出(TCA6424 P17, sysfs pin 500) */
+  /* GPIO 结果输出(TCA6424, sysfs 方式)
+   * pin 计算: base=485(查 /sys/kernel/debug/gpio 中 i2c 行的起始号)
+   *   P00-P07: pin = base + offset
+   *   P10-P17: pin = base + offset - 2
+   *   P20-P27: pin = base + offset - 4
+   * 例: P17=485+17-2=500, P23=485+23-4=504 */
   bool gpio_enabled = true;
   int gpio_pin = 500;                 /* P17 = 485 + 17 - 2 */
 };
