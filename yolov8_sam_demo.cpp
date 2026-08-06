@@ -18,8 +18,10 @@
 #include "logger.h"
 #include "can_bus.h"
 #include "gpio_out.h"
+#include "gpio_in.h"
 #include "judgment.h"
 #include <spdlog/spdlog.h>
+#include <thread>
 #endif
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds Milliseconds;
@@ -44,7 +46,29 @@ int main(int argc, char **argv) {
         can_bus::init(config::g.can_send_if, config::g.can_recv_if,
                       config::g.can_id);
     if (config::g.gpio_enabled)
-        gpio_out::init(config::g.gpio_pin);
+        gpio_out::init(config::g.gpio_out_pin);
+    if (config::g.gpio_input_enabled) {
+        gpio_in::init(config::g.gpio_input_pin);
+        std::thread([] {
+            SPDLOG_INFO("[GPIO-vfy] 轮询线程启动, P{} vs P{}",
+                        config::g.gpio_input_pin, config::g.gpio_out_pin);
+            while (true) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                int in = gpio_in::read();
+                int out = gpio_out::last_output_val();
+                if (in < 0) {
+                    SPDLOG_DEBUG("[GPIO-vfy] read 返回 {} (忽略)", in);
+                    continue;
+                }
+                if (in == out)
+                    SPDLOG_INFO("[GPIO-vfy] P{}={} == P{}={} ✓", config::g.gpio_input_pin,
+                                in, config::g.gpio_out_pin, out);
+                else
+                    SPDLOG_WARN("[GPIO-vfy] P{}={} != P{}={} ✗ 不一致!",
+                                config::g.gpio_input_pin, in, config::g.gpio_out_pin, out);
+            }
+        }).detach();
+    }
     /* 无参数直接启动 UI（输入源在界面内用文件浏览器选择） */
     if (argc < 2) {
         AppConfig cfg;
