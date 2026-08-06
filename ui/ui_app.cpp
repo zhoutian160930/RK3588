@@ -17,6 +17,7 @@
 #include "logger.h"
 #include "config.h"
 #include "can_bus.h"
+#include "gpio_out.h"
 #include "judgment.h"
 #include "ui_log.h"
 #include "mobilesam/mobilesam_pool.h"
@@ -291,6 +292,7 @@ void worker_fn() {
     }
     /* CAN 直接发送合格判定结果，不再二次判断 */
     if (config::g.can_enabled) can_bus::send_result(qualified);
+    gpio_out::set_qualified(qualified);
     SPDLOG_INFO("frame {} 合格={}", g_proc_count.load(), qualified);
     int ll = (int)(llf * out.cols), rr = (int)(rrf * out.cols);
     cv::line(out, cv::Point(ll, 0), cv::Point(ll, out.rows),

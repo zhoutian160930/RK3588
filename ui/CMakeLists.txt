@@ -13,6 +13,7 @@ add_library(ui_lib STATIC
     ../core/config.cpp
     ../core/judgment.cpp
     ../core/can_bus.cpp
+    ../core/gpio_out.cpp
 )
 target_include_directories(ui_lib PUBLIC
     ${CMAKE_SOURCE_DIR}

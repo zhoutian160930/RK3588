@@ -17,6 +17,7 @@
 #include "config.h"
 #include "logger.h"
 #include "can_bus.h"
+#include "gpio_out.h"
 #include "judgment.h"
 #include <spdlog/spdlog.h>
 #endif
@@ -42,6 +43,8 @@ int main(int argc, char **argv) {
     if (config::g.can_enabled)
         can_bus::init(config::g.can_send_if, config::g.can_recv_if,
                       config::g.can_id);
+    if (config::g.gpio_enabled)
+        gpio_out::init(config::g.gpio_pin);
     /* 无参数直接启动 UI（输入源在界面内用文件浏览器选择） */
     if (argc < 2) {
         AppConfig cfg;
@@ -221,6 +224,7 @@ int main(int argc, char **argv) {
               JudgeSummary sum = summarize(boxes);
               bool ok = is_qualified(sum);
               can_bus::send_result(ok);
+              gpio_out::set_qualified(ok);
               SPDLOG_INFO("frame {} qualified={} full={} notfull={} notrevealed={}",
                           yolo_received_count, ok, sum.full, sum.not_full,
                           sum.not_revealed);
