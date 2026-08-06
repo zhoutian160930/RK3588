@@ -17,6 +17,7 @@
 #include "config.h"
 #include "logger.h"
 #include "can_bus.h"
+#include "judgment.h"
 #include <spdlog/spdlog.h>
 #endif
 typedef std::chrono::high_resolution_clock Clock;
@@ -207,6 +208,23 @@ int main(int argc, char **argv) {
                 ? (std::filesystem::path(out_dir) / (use_sam ? "sam_out.jpg" : "det_out.jpg")).string()
                 : yolo_res.tag;
             yolo_received_count++;
+
+            /* 多盒判定 + CAN 发送(与 UI worker 共用同一判定逻辑) */
+            if (config::g.can_enabled && yolo_res.img) {
+              auto boxes =
+                  judge_all_boxes(yolo_res.results, yolo_res.img->cols,
+                                  (float)config::g.line_left_frac,
+                                  (float)config::g.line_right_frac,
+                                  config::g.target_count,
+                                  config::g.box_class,
+                                  config::g.material_class);
+              JudgeSummary sum = summarize(boxes);
+              bool ok = is_qualified(sum);
+              can_bus::send_result(ok);
+              SPDLOG_INFO("frame {} qualified={} full={} notfull={} notrevealed={}",
+                          yolo_received_count, ok, sum.full, sum.not_full,
+                          sum.not_revealed);
+            }
 
             if (use_sam) {
                 std::vector<mobilesam_box> sam_boxes;

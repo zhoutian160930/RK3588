@@ -82,6 +82,7 @@ bool init(const std::string &send_if, const std::string &recv_if, int can_id) {
     SPDLOG_INFO("CAN: 接收接口 {} 就绪", recv_if);
     g_running = true;
     g_recv_thread = std::thread(recv_loop);
+    std::atexit(+[] { shutdown(); });  /* 进程退出时自动回收线程(Ui/headless通用) */
   } else {
     SPDLOG_WARN("CAN: 接收接口 {} 不可用，仅发送模式", recv_if);
   }

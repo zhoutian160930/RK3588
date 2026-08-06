@@ -17,6 +17,7 @@
 #include "logger.h"
 #include "config.h"
 #include "can_bus.h"
+#include "judgment.h"
 #include "ui_log.h"
 #include "mobilesam/mobilesam_pool.h"
 #include "rknn_pool.h"
@@ -189,68 +190,6 @@ void open_label_browser(lv_event_t *) {
   ui_filebrowser_open(config::g.fb_model_dir.c_str(), ".txt", 0, on_fb_label, NULL);
 }
 
-/* ---- 满料判定（UI 标签与 worker 画图共用，支持多盒子） ---- */
-struct BoxJudgment {
-  int box_left = 0, box_right = 0, box_top = 0, box_bottom = 0; /* 原图坐标 */
-  bool revealed = false;   /* 是否在两竖线内(完全漏出) */
-  int material_count = 0;  /* 盒内物料数 */
-  bool full = false;       /* 是否满料(仅对 revealed 的盒子有意义) */
-};
-
-/* 多盒判定：找出所有盒子(box_class)，每个判断是否在两竖线内；
- * 物料(material_class)按中心点归属到包含它的盒子。
- * line_left_frac/right 为竖线占图宽比例(0~1)。 */
-std::vector<BoxJudgment> judge_all_boxes(const object_detect_result_list &res,
-                                         int orig_w, float line_left_frac,
-                                         float line_right_frac, int target,
-                                         int box_class, int material_class) {
-  std::vector<BoxJudgment> boxes;
-  int ll = (int)(line_left_frac * orig_w);
-  int rr = (int)(line_right_frac * orig_w);
-  for (int i = 0; i < res.count; i++) {
-    if (res.results[i].cls_id != box_class) continue;
-    BoxJudgment b;
-    b.box_left = res.results[i].box.left;
-    b.box_right = res.results[i].box.right;
-    b.box_top = res.results[i].box.top;
-    b.box_bottom = res.results[i].box.bottom;
-    b.revealed = (b.box_left >= ll) && (b.box_right <= rr);
-    boxes.push_back(b);
-  }
-  /* 物料归属到包含其中心的盒子 */
-  for (int i = 0; i < res.count; i++) {
-    if (res.results[i].cls_id != material_class) continue;
-    int cx = (res.results[i].box.left + res.results[i].box.right) / 2;
-    int cy = (res.results[i].box.top + res.results[i].box.bottom) / 2;
-    for (auto &b : boxes) {
-      if (cx >= b.box_left && cx <= b.box_right && cy >= b.box_top &&
-          cy <= b.box_bottom) {
-        b.material_count++;
-        break;
-      }
-    }
-  }
-  for (auto &b : boxes) {
-    if (b.revealed) b.full = (b.material_count == target);
-  }
-  return boxes;
-}
-
-/* 汇总：满/未满/未漏出 的盒子数 */
-struct JudgeSummary {
-  int total = 0, full = 0, not_full = 0, not_revealed = 0;
-};
-JudgeSummary summarize(const std::vector<BoxJudgment> &boxes) {
-  JudgeSummary s;
-  s.total = boxes.size();
-  for (auto &b : boxes) {
-    if (!b.revealed) s.not_revealed++;
-    else if (b.full) s.full++;
-    else s.not_full++;
-  }
-  return s;
-}
-
 /* ---- 推理工作线程 ---- */
 void worker_fn() {
   g_state = ST_RUNNING;
@@ -342,7 +281,7 @@ void worker_fn() {
     JudgeSummary sum = summarize(boxes);
     /* 本帧合格判定(唯一来源)：检测区内有满料盒且无未满盒 → 合格。
      * 区外未漏出的盒子不计入。下面的统计/CAN/日志全部用这个结果。 */
-    bool qualified = (sum.full > 0 && sum.not_full == 0);
+    bool qualified = is_qualified(sum);
     /* 累计正确/错误(按帧)：合格帧计入正确，不合格帧计入错误 */
     if (sum.total > 0) {
       if (qualified)
