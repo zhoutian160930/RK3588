@@ -18,6 +18,7 @@
 #include "config.h"
 #include "can_bus.h"
 #include "gpio_out.h"
+#include "gpio_in.h"
 #include "judgment.h"
 #include "ui_log.h"
 #include "mobilesam/mobilesam_pool.h"
@@ -375,6 +376,10 @@ void worker_fn() {
   /* 严格串行：提交一张 -> 等它推理完并显示 -> 才提交下一张。
    * 这样保证"推理一张就展示一张"，而不是全部推理完再一起出。 */
   auto process_one = [&](std::shared_ptr<cv::Mat> src) {
+    /* 外部暂停控制：P24=HIGH 时阻塞等待恢复 */
+    while (gpio_in::is_system_paused() && !stopped()) {
+      usleep(200000);
+    }
     auto t0 = std::chrono::high_resolution_clock::now();
     ImageProcess ip(src->cols, src->rows, 640);
     yolo.AddInferenceTask(src, ip, "");

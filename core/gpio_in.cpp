@@ -11,6 +11,7 @@ namespace gpio_in {
 static int g_pin = -1;
 static int g_tca_offset = -1;
 static std::string g_value_path;
+static std::atomic<bool> g_paused{false};
 
 static bool sysfs_write(const std::string &p, const std::string &v) {
   int fd = open(p.c_str(), O_WRONLY);
@@ -55,5 +56,8 @@ int read() {
 void shutdown() {
   if (g_pin >= 0) { g_pin = -1; }
 }
+
+bool is_system_paused() { return g_paused.load(); }
+void set_paused(bool v) { g_paused.store(v); }
 
 }  // namespace gpio_in

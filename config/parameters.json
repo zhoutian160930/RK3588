@@ -26,7 +26,7 @@
   "can_recv_if": "can1",
   "can_id": 768,
   "gpio_enabled": true,
-  "gpio_out_pin": 20,
+  "gpio_out_pin": 23,
   "gpio_input_enabled": true,
-  "gpio_input_pin": 24
+  "gpio_input_pin": 27
 }

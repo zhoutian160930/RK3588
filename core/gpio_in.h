@@ -1,13 +1,13 @@
 #pragma once
+#include <atomic>
 
 namespace gpio_in {
 
-/* 初始化：通过 sysfs 导出并设为输入。失败仅告警。 */
-bool init(int gpio_pin);
-
-/* 读回当前电平：0(低)=满足, 1(高)=不满足。失败返回 -1。 */
+bool init(int tca_offset);
 int read();
-
-/* 关闭。 */
 void shutdown();
+
+/* 外部暂停控制：P24=HIGH→暂停, LOW→恢复 */
+bool is_system_paused();
+void set_paused(bool v);
 }

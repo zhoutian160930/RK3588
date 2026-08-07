@@ -50,22 +50,23 @@ int main(int argc, char **argv) {
     if (config::g.gpio_input_enabled) {
         gpio_in::init(config::g.gpio_input_pin);
         std::thread([] {
-            SPDLOG_INFO("[GPIO-vfy] 轮询线程启动, P{} vs P{}",
-                        config::g.gpio_input_pin, config::g.gpio_out_pin);
+            SPDLOG_INFO("[GPIO-ctrl] 轮询线程启动, P{} 监控暂停/恢复",
+                        config::g.gpio_input_pin);
+            bool was_paused = false;
             while (true) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 int in = gpio_in::read();
-                int out = gpio_out::last_output_val();
-                if (in < 0) {
-                    SPDLOG_DEBUG("[GPIO-vfy] read 返回 {} (忽略)", in);
-                    continue;
+                if (in < 0) continue;
+                bool now_paused = (in == 1);
+                if (now_paused && !was_paused) {
+                    gpio_in::set_paused(true);
+                    SPDLOG_WARN("[GPIO-ctrl] P{}=HIGH → 系统暂停", config::g.gpio_input_pin);
+                    was_paused = true;
+                } else if (!now_paused && was_paused) {
+                    gpio_in::set_paused(false);
+                    SPDLOG_INFO("[GPIO-ctrl] P{}=LOW → 系统恢复", config::g.gpio_input_pin);
+                    was_paused = false;
                 }
-                if (in == out)
-                    SPDLOG_INFO("[GPIO-vfy] P{}={} == P{}={} ✓", config::g.gpio_input_pin,
-                                in, config::g.gpio_out_pin, out);
-                else
-                    SPDLOG_WARN("[GPIO-vfy] P{}={} != P{}={} ✗ 不一致!",
-                                config::g.gpio_input_pin, in, config::g.gpio_out_pin, out);
             }
         }).detach();
     }
@@ -216,6 +217,10 @@ int main(int argc, char **argv) {
     }
 
     while (true) {
+        /* 外部暂停控制：P24=HIGH 时阻塞等待恢复 */
+        while (gpio_in::is_system_paused()) {
+            usleep(200000);
+        }
         cv::Mat frame;
         if (!is_image && !is_dir) {
             cap >> frame;
