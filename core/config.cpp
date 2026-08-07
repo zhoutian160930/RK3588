@@ -77,6 +77,13 @@ static void apply_kv(const std::string &k, const std::string &v) {
   else if (k == "gpio_out_pin") g.gpio_out_pin = std::atoi(v.c_str());
   else if (k == "gpio_input_enabled") g.gpio_input_enabled = (v == "true" || v == "1");
   else if (k == "gpio_input_pin") g.gpio_input_pin = std::atoi(v.c_str());
+  else if (k == "camera_enabled") g.camera_enabled = (v == "true" || v == "1");
+  else if (k == "camera_iface") g.camera_iface = v;
+  else if (k == "camera_ip") g.camera_ip = v;
+  else if (k == "camera_grab_bin") g.camera_grab_bin = v;
+  else if (k == "camera_qemu_bin") g.camera_qemu_bin = v;
+  else if (k == "camera_lib_path") g.camera_lib_path = v;
+  else if (k == "camera_timeout_ms") g.camera_timeout_ms = std::atoi(v.c_str());
 }
 
 static bool load_file() {
@@ -126,7 +133,14 @@ static void write_file() {
   out << "  \"gpio_enabled\": " << (g.gpio_enabled ? "true" : "false") << ",\n";
   out << "  \"gpio_out_pin\": " << g.gpio_out_pin << ",\n";
   out << "  \"gpio_input_enabled\": " << (g.gpio_input_enabled ? "true" : "false") << ",\n";
-  out << "  \"gpio_input_pin\": " << g.gpio_input_pin << "\n";
+  out << "  \"gpio_input_pin\": " << g.gpio_input_pin << ",\n";
+  out << "  \"camera_enabled\": " << (g.camera_enabled ? "true" : "false") << ",\n";
+  out << "  \"camera_iface\": \"" << g.camera_iface << "\",\n";
+  out << "  \"camera_ip\": \"" << g.camera_ip << "\",\n";
+  out << "  \"camera_grab_bin\": \"" << g.camera_grab_bin << "\",\n";
+  out << "  \"camera_qemu_bin\": \"" << g.camera_qemu_bin << "\",\n";
+  out << "  \"camera_lib_path\": \"" << g.camera_lib_path << "\",\n";
+  out << "  \"camera_timeout_ms\": " << g.camera_timeout_ms << "\n";
   out << "}\n";
 }
 

@@ -42,6 +42,14 @@ struct Config {
   int gpio_out_pin = 20;               /* TCA6424 引脚号 */
   bool gpio_input_enabled = true;
   int gpio_input_pin = 24;             /* TCA6424 引脚号 */
+  /* 摄像头(OPT 工业相机 via grab_stream+qemu) */
+  bool camera_enabled = false;
+  std::string camera_iface = "eth1";
+  std::string camera_ip = "169.254.100.100/16";
+  std::string camera_grab_bin = "/home/ubuntu/OPTCameraViewer_extracted/grab_stream";
+  std::string camera_qemu_bin = "/usr/bin/qemu-x86_64-static";
+  std::string camera_lib_path = "/home/ubuntu/OPTCameraViewer_extracted/opt/OPTCameraViewer_V3.0.0.2/Development/Bin/Linux_X86_64";
+  int camera_timeout_ms = 10000;
 };
 
 namespace config {

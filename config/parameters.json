@@ -28,5 +28,12 @@
   "gpio_enabled": true,
   "gpio_out_pin": 23,
   "gpio_input_enabled": true,
-  "gpio_input_pin": 27
+  "gpio_input_pin": 24,
+  "camera_enabled": true,
+  "camera_iface": "eth1",
+  "camera_ip": "169.254.100.100/16",
+  "camera_grab_bin": "/home/ubuntu/OPTCameraViewer_extracted/grab_stream",
+  "camera_qemu_bin": "/usr/bin/qemu-x86_64-static",
+  "camera_lib_path": "/home/ubuntu/OPTCameraViewer_extracted/opt/OPTCameraViewer_V3.0.0.2/Development/Bin/Linux_X86_64",
+  "camera_timeout_ms": 10000
 }

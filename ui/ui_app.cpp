@@ -19,6 +19,7 @@
 #include "can_bus.h"
 #include "gpio_out.h"
 #include "gpio_in.h"
+#include "camera_capture.h"
 #include "judgment.h"
 #include "ui_log.h"
 #include "mobilesam/mobilesam_pool.h"
@@ -52,6 +53,7 @@ std::string g_sam_enc_path;
 std::string g_sam_dec_path;
 bool g_use_sam = false;
 int g_yolo_threads = 3;
+bool g_use_camera = false;  /* 摄像头输入模式 */
 
 
 /* 两条竖线(检测区左右边界)，单位为 canvas 坐标 [0, CV_W]；atomic 供 worker 实时读 */
@@ -70,6 +72,7 @@ FramePayload g_last_payload;                  /* 最近一帧(用于拖线时实
 bool g_has_last = false;
 
 FrameBus g_bus;
+std::unique_ptr<RknnPool> g_yolo_pool;  /* 常驻 YOLO 模型(不每轮重建) */
 std::thread g_worker;
 std::atomic<bool> g_stop{false};
 enum UiState { ST_IDLE = 0, ST_RUNNING = 1, ST_DONE = 2, ST_STOPPED = 3 };
@@ -150,13 +153,17 @@ static void close_src_popup() {
 }
 static void on_src_folder(lv_event_t *) {
   close_src_popup();
+  g_use_camera = false;
+  camera_capture::shutdown();  /* 切回文件夹时关闭相机 */
   ui_filebrowser_open(config::g.fb_input_dir.c_str(),
                       ".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mkv", 1, on_fb_input, NULL);
 }
 static void on_src_camera(lv_event_t *) {
   close_src_popup();
-  SPDLOG_INFO("输入源：摄像头(接口预留，尚未接入)");
-  if (g_input_label) lv_label_set_text(g_input_label, "摄像头(未接入)");
+  g_use_camera = true;
+  camera_capture::init(0);  /* 立刻加载相机(已就绪则幂等返回) */
+  SPDLOG_INFO("输入源：摄像头");
+  if (g_input_label) lv_label_set_text(g_input_label, "摄像头");
 }
 void open_input_source_menu(lv_event_t *) {
   close_src_popup();
@@ -218,8 +225,15 @@ void worker_fn() {
 
   SPDLOG_INFO("loading YOLO model: {} (threads={})", cfg.yolo_path,
               cfg.yolo_threads);
-  RknnPool yolo(cfg.yolo_path, cfg.yolo_threads, cfg.label_path);
-  SPDLOG_INFO("YOLO model loaded");
+  if (!g_yolo_pool) {
+    RknnPool *p = new RknnPool(cfg.yolo_path, cfg.yolo_threads, cfg.label_path);
+    g_yolo_pool.reset(p);
+    SPDLOG_INFO("YOLO model loaded (常驻)");
+  }
+  RknnPool &yolo = *g_yolo_pool;
+  /* 清空上次残余结果(停止时可能未排空) */
+  while (yolo.GetImageResultFromQueue().img != nullptr) {
+  }
   std::unique_ptr<MobileSamPool> sam;
   if (cfg.use_sam && !cfg.sam_enc_path.empty() && !cfg.sam_dec_path.empty()) {
     SPDLOG_INFO("init SAM: {} / {}", cfg.sam_enc_path, cfg.sam_dec_path);
@@ -396,7 +410,27 @@ void worker_fn() {
     SPDLOG_INFO("frame {} total cost {:.1f} ms", submitted - 1, ms);
   };
 
-  if (is_image) {
+  if (g_use_camera) {
+    /* 摄像头已由 UI 层预先加载，这里直接抓帧推理。"停止"后不杀相机，继续后台运行 */
+    if (!camera_capture::init(0)) {
+      SPDLOG_ERROR("camera: 初始化失败，退出 worker");
+    } else {
+      SPDLOG_INFO("camera: 开始实时推理");
+      int cam_frames = 0;
+      while (!stopped()) {
+        cv::Mat frame;
+        if (camera_capture::grab(frame)) {
+          cam_frames++;
+          SPDLOG_DEBUG("camera: grab 帧 {}", cam_frames);
+          process_one(std::make_shared<cv::Mat>(frame.clone()));
+        } else {
+          usleep(5000);
+        }
+      }
+      SPDLOG_INFO("camera: 循环退出, 共处理 {} 帧, stopped={}", cam_frames,
+                  stopped());
+    }
+  } else if (is_image) {
     process_one(std::make_shared<cv::Mat>(img0.clone()));
   } else if (is_dir) {
     std::vector<fs::path> files;
@@ -573,6 +607,7 @@ void check_worker_done() {
 void on_quit(lv_event_t *) {
   g_stop = true;
   if (g_worker.joinable()) g_worker.join();
+  camera_capture::shutdown();
   can_bus::shutdown();
   exit(0);
 }
@@ -817,6 +852,13 @@ int run_ui_mode(const AppConfig &cfg) {
   lv_textarea_set_cursor_click_pos(g_log_view, false);
   if (sfl) lv_obj_set_style_text_font(g_log_view, sfl, 0);
 
+  /* 启动时自动加载摄像头(若 config 启用) */
+  if (config::g.camera_enabled) {
+    g_use_camera = true;
+    camera_capture::init(0);
+    if (g_input_label) lv_label_set_text(g_input_label, "摄像头");
+  }
+
   apply_resolution();
 
   /* 日志栏滚动缓冲(只保留末尾若干字符) */
@@ -869,6 +911,21 @@ int run_ui_mode(const AppConfig &cfg) {
       }
     }
     if (g_has_last) run_judgment(g_last_payload);
+
+    /* 摄像头模式空闲时：实时显示画面(无需点"开始") */
+    static auto g_last_cam = std::chrono::steady_clock::now();
+    if (g_use_camera && g_state != ST_RUNNING && camera_capture::is_ready()) {
+      auto now = std::chrono::steady_clock::now();
+      if (now - g_last_cam > std::chrono::milliseconds(60)) {
+        cv::Mat frame;
+        if (camera_capture::grab(frame)) {
+          g_last_payload = FramePayload{frame, {}, frame.cols, frame.rows};
+          g_has_last = true;
+          ui_canvas_set_bgr(frame);
+        }
+        g_last_cam = now;
+      }
+    }
 
     /* 实时刷新累计 正确/错误 计数 */
     if (g_stat_label) {

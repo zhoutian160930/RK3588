@@ -16,6 +16,7 @@ add_library(ui_lib STATIC
     ../core/gpio_out.cpp
     ../core/gpio_in.cpp
     ../core/gpio_utils.cpp
+    ../core/camera_capture.cpp
 )
 target_include_directories(ui_lib PUBLIC
     ${CMAKE_SOURCE_DIR}
