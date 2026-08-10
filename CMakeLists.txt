@@ -14,6 +14,11 @@ SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}  -Wno-unused-parameter -O3 -g -Wall"
 include_directories(include)
 include_directories(utils)
 
+# SciCamSDK (OPT 工业相机 ARM64 SDK)
+set(SCICAM_SDK_DIR "/home/forlinx/SciCamSDK_V1.6.1.5_20250925/Development/Sample/BaseDemoConsole")
+include_directories(${SCICAM_SDK_DIR}/Libraries/include)
+link_directories(${SCICAM_SDK_DIR}/Libraries/linux_arm64 /usr/lib)
+
 add_subdirectory(utils)
 
 find_package(OpenCV REQUIRED)

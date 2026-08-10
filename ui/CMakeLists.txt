@@ -29,6 +29,8 @@ target_link_libraries(ui_lib PUBLIC
     yolov8-utils
     ${SPDLOG_LIB}
     ${OpenCV_LIBS}
+    SciCamSDK
+    pthread
 )
 target_compile_definitions(ui_lib PUBLIC SPDLOG_COMPILED_LIB)
 

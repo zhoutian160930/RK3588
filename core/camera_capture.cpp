@@ -2,101 +2,150 @@
 #include "config.h"
 
 #include <opencv2/imgproc.hpp>
-#include <signal.h>
 #include <spdlog/spdlog.h>
 #include <cstring>
-#include <fcntl.h>
-#include <fstream>
+#include <mutex>
+#include <vector>
 #include <unistd.h>
+#include <arpa/inet.h>
+
+#include "SciCam.h"
+#include "SciCamPayload.h"
 
 namespace camera_capture {
 
+static void *g_handle = nullptr;
 static int g_w = 0, g_h = 0;
-static unsigned long long g_last_fid = 0;
-static std::vector<uint8_t> g_buf;
 static bool g_ready = false;
-
-/* 启动相机采集守护进程 (Aravis 原生 aarch64) */
-static bool start_grab_stream() {
-  system("pkill -f camera_aravis 2>/dev/null");
-  usleep(200000);
-  unlink("/tmp/camera_info.txt");
-  unlink("/tmp/camera_frame.raw");
-  unlink("/tmp/camera_frame.tmp");
-
-  /* 配置 eth1 IP */
-  std::string ip_cmd = "ip addr show " + config::g.camera_iface +
-                       " | grep -q " + config::g.camera_ip.substr(0, config::g.camera_ip.find('/')) +
-                       " || ip addr add " + config::g.camera_ip + " dev " + config::g.camera_iface +
-                       " 2>/dev/null";
-  system(ip_cmd.c_str());
-
-  /* 启动 camera_aravis（需要 root 权限，请用 sudo 运行主程序） */
-  std::string cmd = config::g.camera_grab_bin + " &>/dev/null &";
-  int ret = system(cmd.c_str());
-  if (ret != 0) {
-    SPDLOG_ERROR("camera: 启动 camera_aravis 失败");
-    return false;
-  }
-  SPDLOG_INFO("camera: camera_aravis 已启动 ({})", config::g.camera_grab_bin);
-  return true;
-}
+static std::mutex g_mtx;
 
 bool init(int timeout_ms) {
-  if (g_ready) return true; /* 已就绪，幂等返回 */
+  std::lock_guard<std::mutex> lock(g_mtx);
+  if (g_ready) return true;
   if (timeout_ms <= 0) timeout_ms = config::g.camera_timeout_ms;
-  if (!start_grab_stream()) return false;
 
-  SPDLOG_INFO("camera: 等待相机就绪...");
-  int waited = 0;
-  while (g_w == 0 || g_h == 0) {
-    std::ifstream f("/tmp/camera_info.txt");
-    if (f >> g_w >> g_h) break;
-    f.close();
-    if (timeout_ms > 0 && waited >= timeout_ms) {
-      SPDLOG_ERROR("camera: 等待相机超时({}ms)，检查 {} 网络和相机连接",
-                   timeout_ms, config::g.camera_iface);
-      return false;
-    }
-    usleep(500000);
-    waited += 500;
+  /* 配置 eth1 IP */
+  std::string ip_cmd =
+      "ip addr show " + config::g.camera_iface + " | grep -q " +
+      config::g.camera_ip.substr(0, config::g.camera_ip.find('/')) +
+      " || ip addr add " + config::g.camera_ip + " dev " +
+      config::g.camera_iface + " 2>/dev/null";
+  system(ip_cmd.c_str());
+
+  /* 发现相机 */
+  SPDLOG_INFO("camera: 正在发现相机...");
+  SCI_DEVICE_INFO_LIST devs;
+  memset(&devs, 0, sizeof(devs));
+  unsigned int ret = SciCam_DiscoveryDevices(&devs, 1);
+  if (ret != 0 || devs.count == 0) {
+    SPDLOG_ERROR("camera: 未发现相机 (ret={}, count={})", ret, devs.count);
+    return false;
   }
-  if (g_w <= 0 || g_h <= 0) { SPDLOG_ERROR("camera: 分辨率异常"); return false; }
 
-  g_buf.resize((size_t)g_w * g_h);
-  g_last_fid = 0;
+  SCI_DEVICE_GIGE_INFO &gig = devs.pDevInfo[0].info.gigeInfo;
+  char ip[32];
+  inet_ntop(AF_INET, &gig.ip, ip, sizeof(ip));
+  SPDLOG_INFO("camera: 发现 {}  SN:{}  IP:{}", gig.modelName,
+              gig.serialNumber, ip);
+
+  /* 创建设备并打开 */
+  ret = SciCam_CreateDevice(&g_handle, &devs.pDevInfo[0]);
+  if (ret != 0) {
+    SPDLOG_ERROR("camera: CreateDevice 失败 ({})", ret);
+    return false;
+  }
+  ret = SciCam_OpenDevice(g_handle);
+  if (ret != 0) {
+    SPDLOG_ERROR("camera: OpenDevice 失败 ({})", ret);
+    SciCam_DeleteDevice(g_handle);
+    g_handle = nullptr;
+    return false;
+  }
+
+  SciCam_SetEnumValue(g_handle, "ExposureAuto", 2);
+  SciCam_SetEnumValue(g_handle, "GainAuto", 2);
+  SciCam_SetGrabTimeout(g_handle, 5000);
+  SciCam_SetGrabStrategy(g_handle,
+                          SciCamGrabStrategy::SciCam_GrabStrategy_OneByOne);
+  SciCam_SetGrabBufferCount(g_handle, 8);
+
+  ret = SciCam_StartGrabbing(g_handle);
+  if (ret != 0) {
+    SPDLOG_ERROR("camera: StartGrabbing 失败 ({})", ret);
+    SciCam_CloseDevice(g_handle);
+    SciCam_DeleteDevice(g_handle);
+    g_handle = nullptr;
+    return false;
+  }
+
+  /* 取第一帧获取分辨率 */
+  void *payload = nullptr;
+  ret = SciCam_Grab(g_handle, &payload);
+  if (ret != 0) {
+    SPDLOG_ERROR("camera: 首帧抓取失败 ({})", ret);
+    SciCam_StopGrabbing(g_handle);
+    SciCam_CloseDevice(g_handle);
+    SciCam_DeleteDevice(g_handle);
+    g_handle = nullptr;
+    return false;
+  }
+
+  SCI_CAM_PAYLOAD_ATTRIBUTE attr;
+  SciCam_Payload_GetAttribute(payload, &attr);
+  g_w = (int)attr.imgAttr.width;
+  g_h = (int)attr.imgAttr.height;
+  SciCam_FreePayload(g_handle, payload);
+
   g_ready = true;
-  SPDLOG_INFO("camera: 就绪 {}x{}", g_w, g_h);
+  SPDLOG_INFO("camera: 就绪 {}x{} (via SciCamSDK ARM64)", g_w, g_h);
   return true;
 }
 
 bool is_ready() { return g_ready; }
 
 bool grab(cv::Mat &out) {
-  if (!g_ready) return false;
-  FILE *fp = fopen("/tmp/camera_frame.raw", "rb");
-  if (!fp) return false;
-  unsigned long long fw, fh, fid;
-  if (fread(&fw, sizeof(fw), 1, fp) != 1 ||
-      fread(&fh, sizeof(fh), 1, fp) != 1 ||
-      fread(&fid, sizeof(fid), 1, fp) != 1) { fclose(fp); return false; }
-  if ((int)fw != g_w || (int)fh != g_h || fid <= g_last_fid) { fclose(fp); return false; }
-  size_t sz = (size_t)g_w * g_h;
-  if (fread(g_buf.data(), 1, sz, fp) != sz) { fclose(fp); return false; }
-  fclose(fp);
-  g_last_fid = fid;
-  cv::Mat gray(g_h, g_w, CV_8UC1, g_buf.data());
-  cv::cvtColor(gray, out, cv::COLOR_GRAY2BGR);
+  std::lock_guard<std::mutex> lock(g_mtx);
+  if (!g_ready || !g_handle) return false;
+
+  void *payload = nullptr;
+  unsigned int ret = SciCam_Grab(g_handle, &payload);
+  if (ret != 0) return false;
+
+  SCI_CAM_PAYLOAD_ATTRIBUTE attr;
+  SciCam_Payload_GetAttribute(payload, &attr);
+  if (!attr.isComplete) {
+    SciCam_FreePayload(g_handle, payload);
+    return false;
+  }
+
+  void *src_img = nullptr;
+  SciCam_Payload_GetImage(payload, &src_img);
+
+  uint64_t dst_size = 0;
+  SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, Mono8, nullptr,
+                               &dst_size, true);
+  std::vector<uint8_t> buf(dst_size);
+  SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, Mono8, buf.data(),
+                               &dst_size, true);
+
+  /* Mono8 灰度 → BGR */
+  cv::Mat gray(g_h, g_w, CV_8UC1, buf.data());
+  cv::cvtColor(gray.clone(), out, cv::COLOR_GRAY2BGR);
+
+  SciCam_FreePayload(g_handle, payload);
   return true;
 }
 
 void shutdown() {
-  g_ready = false; g_w = g_h = 0; g_buf.clear(); g_buf.shrink_to_fit();
-  system("pkill -f camera_aravis 2>/dev/null");
-  usleep(200000);
-  unlink("/tmp/camera_info.txt");
-  unlink("/tmp/camera_frame.raw");
-  unlink("/tmp/camera_frame.tmp");
+  std::lock_guard<std::mutex> lock(g_mtx);
+  if (g_handle) {
+    SciCam_StopGrabbing(g_handle);
+    SciCam_CloseDevice(g_handle);
+    SciCam_DeleteDevice(g_handle);
+    g_handle = nullptr;
+  }
+  g_ready = false;
+  g_w = g_h = 0;
   SPDLOG_INFO("camera: 已关闭");
 }
 

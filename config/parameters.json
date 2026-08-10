@@ -32,8 +32,8 @@
   "camera_enabled": true,
   "camera_iface": "eth1",
   "camera_ip": "169.254.100.100/16",
-"camera_grab_bin": "/home/forlinx/lvgl/RK3588/build/camera_aravis",
-"camera_qemu_bin": "",
-"camera_lib_path": "",
+  "camera_grab_bin": "/home/forlinx/lvgl/RK3588/build/camera_aravis",
+  "camera_qemu_bin": "",
+  "camera_lib_path": "",
   "camera_timeout_ms": 10000
 }
