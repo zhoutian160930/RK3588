@@ -16,9 +16,9 @@ static unsigned long long g_last_fid = 0;
 static std::vector<uint8_t> g_buf;
 static bool g_ready = false;
 
-/* 启动 grab_stream（通过 qemu 模拟 x86） */
+/* 启动相机采集守护进程 (Aravis 原生 aarch64) */
 static bool start_grab_stream() {
-  system("pkill -f grab_stream 2>/dev/null");
+  system("pkill -f camera_aravis 2>/dev/null");
   usleep(200000);
   unlink("/tmp/camera_info.txt");
   unlink("/tmp/camera_frame.raw");
@@ -31,17 +31,14 @@ static bool start_grab_stream() {
                        " 2>/dev/null";
   system(ip_cmd.c_str());
 
-  /* 启动 grab_stream */
-  std::string cmd = "LD_LIBRARY_PATH=" + config::g.camera_lib_path + " " +
-                     config::g.camera_qemu_bin + " " + config::g.camera_grab_bin +
-                     " &>/dev/null &";
+  /* 启动 camera_aravis（需要 root 权限，请用 sudo 运行主程序） */
+  std::string cmd = config::g.camera_grab_bin + " &>/dev/null &";
   int ret = system(cmd.c_str());
   if (ret != 0) {
-    SPDLOG_ERROR("camera: 启动 grab_stream 失败");
+    SPDLOG_ERROR("camera: 启动 camera_aravis 失败");
     return false;
   }
-  SPDLOG_INFO("camera: grab_stream 已启动 ({} via {})", config::g.camera_grab_bin,
-              config::g.camera_qemu_bin);
+  SPDLOG_INFO("camera: camera_aravis 已启动 ({})", config::g.camera_grab_bin);
   return true;
 }
 
@@ -95,7 +92,7 @@ bool grab(cv::Mat &out) {
 
 void shutdown() {
   g_ready = false; g_w = g_h = 0; g_buf.clear(); g_buf.shrink_to_fit();
-  system("pkill -f grab_stream 2>/dev/null");
+  system("pkill -f camera_aravis 2>/dev/null");
   usleep(200000);
   unlink("/tmp/camera_info.txt");
   unlink("/tmp/camera_frame.raw");
