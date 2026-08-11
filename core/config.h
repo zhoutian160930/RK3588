@@ -15,6 +15,7 @@ struct Config {
   std::string sam_encoder = "model/mobile_sam_encoder.rknn";
   std::string sam_decoder = "model/mobile_sam_decoder.rknn";
   std::string detImg_root = "/home/ubuntu/lvgl/output/detImg";
+  std::string saveImg_root = "/home/forlinx/lvgl/output/saveImg";
   std::string log_root = "/home/ubuntu/lvgl/output/log";
   int yolo_threads = 3;
   bool use_sam = false;

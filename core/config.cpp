@@ -57,6 +57,7 @@ static void apply_kv(const std::string &k, const std::string &v) {
   else if (k == "sam_encoder") g.sam_encoder = v;
   else if (k == "sam_decoder") g.sam_decoder = v;
   else if (k == "detImg_root") g.detImg_root = v;
+  else if (k == "saveImg_root") g.saveImg_root = v;
   else if (k == "log_root") g.log_root = v;
   else if (k == "yolo_threads") g.yolo_threads = std::atoi(v.c_str());
   else if (k == "use_sam") g.use_sam = (v == "true" || v == "1");
@@ -114,6 +115,7 @@ static void write_file() {
   out << "  \"sam_encoder\": \"" << g.sam_encoder << "\",\n";
   out << "  \"sam_decoder\": \"" << g.sam_decoder << "\",\n";
   out << "  \"detImg_root\": \"" << g.detImg_root << "\",\n";
+  out << "  \"saveImg_root\": \"" << g.saveImg_root << "\",\n";
   out << "  \"log_root\": \"" << g.log_root << "\",\n";
   out << "  \"yolo_threads\": " << g.yolo_threads << ",\n";
   out << "  \"use_sam\": " << (g.use_sam ? "true" : "false") << ",\n";

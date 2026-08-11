@@ -85,12 +85,15 @@ lv_obj_t *g_input_label, *g_yolo_label, *g_label_label;
 lv_obj_t *g_status_label;
 lv_obj_t *g_judge_label;   /* 满料判定结果(大字) */
 lv_obj_t *g_stat_label;    /* 累计 正确/错误 物料数 */
-lv_obj_t *g_start_btn, *g_stop_btn;
+lv_obj_t *g_start_btn, *g_stop_btn, *g_capture_btn;
 lv_obj_t *g_quit_btn;
 lv_obj_t *g_target_label;  /* 目标物料数(显示值) */
 lv_obj_t *g_info_box = nullptr;   /* 左下：当前图片物料信息(滚动) */
 lv_obj_t *g_log_view = nullptr;  /* 右下：日志视图(单栏，按按钮切换内容) */
 int g_log_mode = 0;              /* 0=运行日志(info) 1=警告和报警(warn+err) */
+std::atomic<bool> g_capture_mode{false};   /* 采集图像模式 */
+std::string g_capture_dir;                 /* 采集图像保存目录 */
+int g_capture_idx = 0;
 
 std::string base_name(const std::string &p) {
   size_t s = p.find_last_of('/');
@@ -355,11 +358,13 @@ void worker_fn() {
     /* 等 UI 取走这一帧（最多 ~1s 保底，避免 UI 卡死拖死 worker） */
     for (int i = 0; i < 333 && g_bus.is_pending() && !stopped(); ++i) usleep(3000);
 
-    /* 保存到时间戳子目录 */
-    char savepath[512];
-    snprintf(savepath, sizeof(savepath), "%s/%05d.jpg", save_dir.c_str(), cur_idx);
-    bool ok = cv::imwrite(savepath, out);
-    if (!ok) SPDLOG_ERROR("imwrite failed: {}", savepath);
+    char savepath[512] = "";
+    /* 保存到时间戳子目录（仅在有检测结果时存图） */
+    if (sum.total > 0) {
+      snprintf(savepath, sizeof(savepath), "%s/%05d.jpg", save_dir.c_str(), cur_idx);
+      bool ok = cv::imwrite(savepath, out);
+      if (!ok) SPDLOG_ERROR("imwrite failed: {}", savepath);
+    }
 
     /* 每图评判结果日志(多盒汇总) */
     if (sum.total > 0) {
@@ -612,6 +617,28 @@ void on_quit(lv_event_t *) {
   exit(0);
 }
 
+void on_capture(lv_event_t *) {
+  if (g_state == ST_RUNNING) return;
+  g_capture_mode.store(!g_capture_mode.load());
+  if (g_capture_mode.load()) {
+    if (!camera_capture::is_ready()) {
+      g_use_camera = true;
+      camera_capture::init(0);
+    }
+    std::time_t t = std::time(nullptr);
+    char ts[32];
+    std::strftime(ts, sizeof(ts), "%Y%m%d_%H%M%S", std::localtime(&t));
+    g_capture_dir = config::g.saveImg_root + "/" + ts;
+    fs::create_directories(g_capture_dir);
+    g_capture_idx = 0;
+    SPDLOG_INFO("capture: 开始采集, 保存目录={}", g_capture_dir);
+    lv_obj_add_state(g_capture_btn, LV_STATE_CHECKED);
+  } else {
+    SPDLOG_INFO("capture: 停止采集, 共 {} 张", g_capture_idx);
+    lv_obj_clear_state(g_capture_btn, LV_STATE_CHECKED);
+  }
+}
+
 void sync_config_to_ui() {
   g_input_path = config::g.default_input;
   g_yolo_path = config::g.yolo_model;
@@ -701,6 +728,8 @@ int run_ui_mode(const AppConfig &cfg) {
   g_start_btn = mk_topbtn("开始", on_start);
   g_stop_btn = mk_topbtn("停止", on_stop);
   lv_obj_add_state(g_stop_btn, LV_STATE_DISABLED);
+  g_capture_btn = mk_topbtn("采集图像", on_capture);
+  lv_obj_add_flag(g_capture_btn, LV_OBJ_FLAG_CHECKABLE);
   g_quit_btn = mk_topbtn("退出", on_quit);
 
   /* ===== 左侧：实时推理显示 + 当前物料信息 ===== */
@@ -922,6 +951,13 @@ int run_ui_mode(const AppConfig &cfg) {
           g_last_payload = FramePayload{frame, {}, frame.cols, frame.rows};
           g_has_last = true;
           ui_canvas_set_bgr(frame);
+          /* 采集图像模式：保存每一帧 */
+          if (g_capture_mode.load() && !g_capture_dir.empty()) {
+            char sp[512];
+            snprintf(sp, sizeof(sp), "%s/%06d.jpg",
+                     g_capture_dir.c_str(), g_capture_idx++);
+            cv::imwrite(sp, frame);
+          }
         }
         g_last_cam = now;
       }
