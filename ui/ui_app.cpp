@@ -14,6 +14,7 @@
 
 #include "frame_bus.h"
 #include "image_process.h"
+#include "image_saver.h"
 #include "logger.h"
 #include "config.h"
 #include "can_bus.h"
@@ -359,11 +360,11 @@ void worker_fn() {
     for (int i = 0; i < 333 && g_bus.is_pending() && !stopped(); ++i) usleep(3000);
 
     char savepath[512] = "";
-    /* 保存到时间戳子目录（仅在有检测结果时存图） */
+    /* 保存到时间戳子目录（仅在有检测结果时存图）。
+     * 异步写盘：入队即返回，由后台 image_saver 线程慢慢写，避免阻塞 worker 抓下一帧。 */
     if (sum.total > 0) {
       snprintf(savepath, sizeof(savepath), "%s/%05d.jpg", save_dir.c_str(), cur_idx);
-      bool ok = cv::imwrite(savepath, out);
-      if (!ok) SPDLOG_ERROR("imwrite failed: {}", savepath);
+      image_saver::enqueue(out, savepath);
     }
 
     /* 每图评判结果日志(多盒汇总) */
@@ -614,6 +615,7 @@ void on_quit(lv_event_t *) {
   if (g_worker.joinable()) g_worker.join();
   camera_capture::shutdown();
   can_bus::shutdown();
+  image_saver::shutdown();
   exit(0);
 }
 
@@ -887,6 +889,9 @@ int run_ui_mode(const AppConfig &cfg) {
     camera_capture::init(0);
     if (g_input_label) lv_label_set_text(g_input_label, "摄像头");
   }
+
+  /* 启动异步存盘线程（推理热路径里不再同步写盘） */
+  image_saver::init(16);
 
   apply_resolution();
 

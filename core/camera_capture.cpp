@@ -66,9 +66,11 @@ bool init(int timeout_ms) {
   SciCam_SetEnumValue(g_handle, "ExposureAuto", 2);
   SciCam_SetEnumValue(g_handle, "GainAuto", 2);
   SciCam_SetGrabTimeout(g_handle, 5000);
+  /* Latest 策略：grab() 总返回最新帧并丢弃旧帧，避免慢消费时帧在缓冲区
+   * 排队造成 UI 画面滞后。缓冲数降到 2 进一步压低排队深度。 */
   SciCam_SetGrabStrategy(g_handle,
-                          SciCamGrabStrategy::SciCam_GrabStrategy_OneByOne);
-  SciCam_SetGrabBufferCount(g_handle, 8);
+                          SciCamGrabStrategy::SciCam_GrabStrategy_Latest);
+  SciCam_SetGrabBufferCount(g_handle, 2);
 
   ret = SciCam_StartGrabbing(g_handle);
   if (ret != 0) {
