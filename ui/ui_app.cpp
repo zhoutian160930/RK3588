@@ -261,7 +261,7 @@ void worker_fn() {
   }
   SPDLOG_DEBUG("input kind: is_dir={} is_image={} is_video={}", is_dir, is_image,
                is_video);
-  if (!is_dir && !is_image && !is_video) {
+  if (!g_use_camera && !is_dir && !is_image && !is_video) {
     SPDLOG_ERROR("invalid input (not dir/image/video): {}", cfg.input_path);
     g_state = ST_STOPPED;
     g_bus.set_done();

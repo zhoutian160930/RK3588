@@ -55,23 +55,7 @@ step3_find_camera() {
         return
     fi
 
-    # 方式一: arp-scan
-    if command -v arp-scan &>/dev/null; then
-        echo "    使用 arp-scan 扫描 $CAMERA_IFACE ..."
-        local result
-        result=$(arp-scan --interface="$CAMERA_IFACE" --localnet 2>/dev/null | \
-                 grep -i "Vector\|OPT\|00:02:c4" | head -1)
-        if [ -n "$result" ]; then
-            CAMERA_IP=$(echo "$result" | awk '{print $1}')
-            echo -e "    ${GREEN}发现相机: $CAMERA_IP${NC} ($result)"
-            return
-        fi
-        echo -e "    ${YELLOW}arp-scan 未发现相机${NC}"
-    else
-        echo -e "    ${YELLOW}arp-scan 未安装, 跳过 (apt install arp-scan)${NC}"
-    fi
-
-    # 方式二: 用 SDK fps_bench 发现
+    # 方式一: 用 SDK fps_bench 发现（最快最可靠）
     local fps_bench="$SCICAM_SDK_DIR/build_Linux_ARM64/fps_bench"
     local lib_dir="$SCICAM_SDK_DIR/Libraries/linux_arm64"
     if [ -f "$fps_bench" ]; then
@@ -81,11 +65,29 @@ step3_find_camera() {
         if echo "$output" | grep -q "Found:"; then
             local model=$(echo "$output" | grep "Found:" | head -1)
             echo -e "    ${GREEN}$model${NC}"
-            echo "    (执行成功，相机已可连接，跳过 IP 输出)"
             return
         fi
-        echo -e "    ${YELLOW}SDK 也未发现相机，请检查相机电源和网线${NC}"
+        echo -e "    ${YELLOW}SDK 未发现相机${NC}"
     fi
+
+    # 方式二: arp-scan 快速扫描（仅扫 169.254.x.0/24，不走全 /16）
+    if command -v arp-scan &>/dev/null; then
+        echo "    使用 arp-scan 扫描 169.254.0.0/24 ..."
+        local result
+        result=$(arp-scan --interface="$CAMERA_IFACE" --bandwidth=100000 \
+                  169.254.0.0/24 169.254.1.0/24 169.254.100.0/24 169.254.165.0/24 2>/dev/null | \
+                 grep -iE "Vector|OPT|00:02:c4" | head -1)
+        if [ -n "$result" ]; then
+            CAMERA_IP=$(echo "$result" | awk '{print $1}')
+            echo -e "    ${GREEN}发现相机: $CAMERA_IP${NC} ($result)"
+            return
+        fi
+        echo -e "    ${YELLOW}arp-scan 未发现相机${NC}"
+    else
+        echo -e "    ${YELLOW}arp-scan 未安装 (apt install arp-scan), 跳过${NC}"
+    fi
+
+    echo -e "    ${RED}未发现相机，请检查相机电源和网线连接${NC}"
 }
 
 step4_install_sdk() {
