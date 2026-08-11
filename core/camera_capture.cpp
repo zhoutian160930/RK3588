@@ -18,6 +18,7 @@ static void *g_handle = nullptr;
 static int g_w = 0, g_h = 0;
 static bool g_ready = false;
 static std::mutex g_mtx;
+static SciCamPixelType g_pixel_type = Mono8;  /* 灰度相机默认 Mono8 */
 
 bool init(int timeout_ms) {
   std::lock_guard<std::mutex> lock(g_mtx);
@@ -78,7 +79,7 @@ bool init(int timeout_ms) {
     return false;
   }
 
-  /* 取第一帧获取分辨率 */
+  /* 取第一帧获取分辨率和像素格式 */
   void *payload = nullptr;
   ret = SciCam_Grab(g_handle, &payload);
   if (ret != 0) {
@@ -94,10 +95,12 @@ bool init(int timeout_ms) {
   SciCam_Payload_GetAttribute(payload, &attr);
   g_w = (int)attr.imgAttr.width;
   g_h = (int)attr.imgAttr.height;
+  g_pixel_type = attr.imgAttr.pixelType;  /* 记录原生像素格式 */
   SciCam_FreePayload(g_handle, payload);
 
   g_ready = true;
-  SPDLOG_INFO("camera: 就绪 {}x{} (via SciCamSDK ARM64)", g_w, g_h);
+  SPDLOG_INFO("camera: 就绪 {}x{} pixelType=0x{:x} (via SciCamSDK ARM64)",
+              g_w, g_h, (unsigned)g_pixel_type);
   return true;
 }
 
@@ -121,16 +124,28 @@ bool grab(cv::Mat &out) {
   void *src_img = nullptr;
   SciCam_Payload_GetImage(payload, &src_img);
 
-  uint64_t dst_size = 0;
-  SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, Mono8, nullptr,
-                               &dst_size, true);
-  std::vector<uint8_t> buf(dst_size);
-  SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, Mono8, buf.data(),
-                               &dst_size, true);
+  /* 根据相机类型选择转换目标：Bayer→BGR8, Mono→Mono8→BGR */
+  bool is_bayer = (g_pixel_type == BayerRG8 || g_pixel_type == BayerGR8 ||
+                   g_pixel_type == BayerGB8 || g_pixel_type == BayerBG8);
 
-  /* Mono8 灰度 → BGR */
-  cv::Mat gray(g_h, g_w, CV_8UC1, buf.data());
-  cv::cvtColor(gray.clone(), out, cv::COLOR_GRAY2BGR);
+  if (is_bayer) {
+    uint64_t dst_size = 0;
+    SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, BGR8, nullptr,
+                                 &dst_size, true);
+    std::vector<uint8_t> buf(dst_size);
+    SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, BGR8, buf.data(),
+                                 &dst_size, true);
+    out = cv::Mat(g_h, g_w, CV_8UC3, buf.data()).clone();
+  } else {
+    uint64_t dst_size = 0;
+    SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, Mono8, nullptr,
+                                 &dst_size, true);
+    std::vector<uint8_t> buf(dst_size);
+    SciCam_Payload_ConvertImage(&attr.imgAttr, src_img, Mono8, buf.data(),
+                                 &dst_size, true);
+    cv::Mat gray(g_h, g_w, CV_8UC1, buf.data());
+    cv::cvtColor(gray.clone(), out, cv::COLOR_GRAY2BGR);
+  }
 
   SciCam_FreePayload(g_handle, payload);
   return true;
