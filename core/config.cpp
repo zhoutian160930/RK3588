@@ -85,6 +85,8 @@ static void apply_kv(const std::string &k, const std::string &v) {
   else if (k == "camera_qemu_bin") g.camera_qemu_bin = v;
   else if (k == "camera_lib_path") g.camera_lib_path = v;
   else if (k == "camera_timeout_ms") g.camera_timeout_ms = std::atoi(v.c_str());
+  else if (k == "camera_width") g.camera_width = std::atoi(v.c_str());
+  else if (k == "camera_height") g.camera_height = std::atoi(v.c_str());
 }
 
 static bool load_file() {
@@ -142,7 +144,9 @@ static void write_file() {
   out << "  \"camera_grab_bin\": \"" << g.camera_grab_bin << "\",\n";
   out << "  \"camera_qemu_bin\": \"" << g.camera_qemu_bin << "\",\n";
   out << "  \"camera_lib_path\": \"" << g.camera_lib_path << "\",\n";
-  out << "  \"camera_timeout_ms\": " << g.camera_timeout_ms << "\n";
+  out << "  \"camera_timeout_ms\": " << g.camera_timeout_ms << ",\n";
+  out << "  \"camera_width\": " << g.camera_width << ",\n";
+  out << "  \"camera_height\": " << g.camera_height << "\n";
   out << "}\n";
 }
 

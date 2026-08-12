@@ -51,6 +51,10 @@ struct Config {
   std::string camera_qemu_bin = "/usr/bin/qemu-x86_64-static";
   std::string camera_lib_path = "/home/ubuntu/OPTCameraViewer_extracted/opt/OPTCameraViewer_V3.0.0.2/Development/Bin/Linux_X86_64";
   int camera_timeout_ms = 10000;
+  /* 相机采集分辨率。0=传感器原生满分辨率(每次启动显式复位，覆盖相机残留的脏配置)。
+   * 若需 ROI 降分辨率提帧率，可设为如 1600/1200(保持 4:3，居中裁剪)。改动后需重启程序。 */
+  int camera_width = 0;
+  int camera_height = 0;
 };
 
 namespace config {
