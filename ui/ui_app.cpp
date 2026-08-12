@@ -904,17 +904,21 @@ int run_ui_mode(const AppConfig &cfg) {
 
   apply_resolution();
 
-  /* 日志栏滚动缓冲(只保留末尾若干字符) */
+  /* 日志栏滚动缓冲(只保留末尾若干字符)。
+   * 上限不能太大：lv_textarea_set_text 对长文本+CJK FreeType 字体的重排是 O(n) 且很贵，
+   * 实测 4000 字符重排要 300~500ms。这里压到 800 字符(约15行)，保证每次 set_text 便宜。 */
   std::string log_info_buf, log_dbgerr_buf;
   int last_log_mode = -1;            /* 检测日志模式切换 */
   std::string info_buf;              /* 物料信息历史(每图追加一行) */
   int info_idx = 0;
+  auto last_info_upd = std::chrono::steady_clock::now();  /* info_box 节流时间戳 */
+  auto last_log_upd = std::chrono::steady_clock::now();   /* log_view 节流时间戳 */
   auto append_log = [](std::string &buf, const std::vector<std::string> &lines) {
     for (auto &l : lines) {
       buf.append(l);
       buf.append("\n");
     }
-    if (buf.size() > 4000) buf.erase(0, buf.size() - 4000);
+    if (buf.size() > 800) buf.erase(0, buf.size() - 800);
   };
 
   /* 主循环：永不因推理完成退出，只在 退出按钮 时结束。
@@ -951,9 +955,14 @@ int run_ui_mode(const AppConfig &cfg) {
         if (boxes.empty()) line += "(无盒子)";
         info_buf.append(line);
         info_buf.append("\n");
-        if (info_buf.size() > 4000) info_buf.erase(0, info_buf.size() - 4000);
-        lv_textarea_set_text(g_info_box, info_buf.c_str());
-        lv_textarea_set_cursor_pos(g_info_box, LV_TEXTAREA_CURSOR_LAST);
+        if (info_buf.size() > 500) info_buf.erase(0, info_buf.size() - 500);
+        /* 节流：lv_textarea_set_text 重排 CJK 文本很贵，限制 ≥200ms 才刷新一次 */
+        auto now_i = std::chrono::steady_clock::now();
+        if (now_i - last_info_upd > std::chrono::milliseconds(200)) {
+          lv_textarea_set_text(g_info_box, info_buf.c_str());
+          lv_textarea_set_cursor_pos(g_info_box, LV_TEXTAREA_CURSOR_LAST);
+          last_info_upd = now_i;
+        }
       }
       auto p_info = std::chrono::high_resolution_clock::now();
       /* UI 分段诊断：canvas 显示 / info 文本框 耗时 */
@@ -1004,11 +1013,15 @@ int run_ui_mode(const AppConfig &cfg) {
     bool mode_changed = (g_log_mode != last_log_mode);
     bool cur_new = (g_log_mode == 0 ? !ni.empty() : !nd.empty());
     auto p_log0 = std::chrono::high_resolution_clock::now();
-    if (g_log_view && (mode_changed || cur_new)) {
+    /* 节流：set_text 重排 CJK 长文本很贵(800字符也要几十ms)，限制 ≥300ms 才刷新。
+     * 模式切换时立即刷新(不节流)，保证点按钮即时响应。 */
+    auto now_l = std::chrono::steady_clock::now();
+    if (g_log_view && (mode_changed || (cur_new && now_l - last_log_upd > std::chrono::milliseconds(300)))) {
       const std::string &shown =
           (g_log_mode == 0) ? log_info_buf : log_dbgerr_buf;
       lv_textarea_set_text(g_log_view, shown.c_str());
       lv_textarea_set_cursor_pos(g_log_view, LV_TEXTAREA_CURSOR_LAST);
+      last_log_upd = now_l;
       last_log_mode = g_log_mode;
     }
     auto p_log1 = std::chrono::high_resolution_clock::now();
