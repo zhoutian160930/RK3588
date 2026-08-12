@@ -14,6 +14,8 @@ struct YoloResult {
   std::shared_ptr<cv::Mat> img;
   object_detect_result_list results;
   std::string tag;
+  int64_t preprocess_us = 0;   /* 预处理耗时(含 letterbox+cvtColor) */
+  int64_t inference_us = 0;    /* NPU 推理耗时 */
 };
 
 class RknnPool {

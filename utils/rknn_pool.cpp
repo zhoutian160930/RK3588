@@ -64,22 +64,23 @@ void RknnPool::AddInferenceTask(std::shared_ptr<cv::Mat> src,
             this->models_[mode_id]->get_model_height(), convert_img->type());
         cv::cvtColor(*convert_img, rgb_img, cv::COLOR_BGR2RGB);
         auto preprocess_end = Clock::now();
-        yolo_preprocess_us_.fetch_add(
-            std::chrono::duration_cast<Microseconds>(preprocess_end - preprocess_start).count(),
-            std::memory_order_relaxed);
+        int64_t pre_us = std::chrono::duration_cast<Microseconds>(
+            preprocess_end - preprocess_start).count();
+        yolo_preprocess_us_.fetch_add(pre_us, std::memory_order_relaxed);
 
         auto infer_start = Clock::now();
         object_detect_result_list od_results;
         this->models_[mode_id]->Inference(rgb_img.ptr(), &od_results,
                                           image_process.get_letter_box());
         auto infer_end = Clock::now();
-        yolo_inference_us_.fetch_add(
-            std::chrono::duration_cast<Microseconds>(infer_end - infer_start).count(),
-            std::memory_order_relaxed);
+        int64_t inf_us = std::chrono::duration_cast<Microseconds>(
+            infer_end - infer_start).count();
+        yolo_inference_us_.fetch_add(inf_us, std::memory_order_relaxed);
 
         yolo_task_count_.fetch_add(1, std::memory_order_relaxed);
         std::lock_guard<std::mutex> lock_guard(this->image_results_mutex_);
-        this->image_results_.push({std::move(original_img), od_results, tag});
+        this->image_results_.push({std::move(original_img), od_results, tag,
+                                   pre_us, inf_us});
       },
       std::move(src));
 }

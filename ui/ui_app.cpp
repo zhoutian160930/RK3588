@@ -288,6 +288,7 @@ void worker_fn() {
   auto drain_one = [&] {
     YoloResult r = yolo.GetImageResultFromQueue();
     if (!r.img) return false;
+    auto t_draw0 = std::chrono::high_resolution_clock::now();
     cv::Mat out = r.img->clone();
     ImageProcess ip(out.cols, out.rows, 640);
     ip.ImagePostProcess(out, r.results);
@@ -355,9 +356,17 @@ void worker_fn() {
     payload.orig_h = out.rows;
     int cur_idx = g_proc_count.load();
     SPDLOG_DEBUG("push frame {} to UI", cur_idx);
+    auto t_draw1 = std::chrono::high_resolution_clock::now();
     g_bus.push(payload);
     /* 等 UI 取走这一帧（最多 ~1s 保底，避免 UI 卡死拖死 worker） */
     for (int i = 0; i < 333 && g_bus.is_pending() && !stopped(); ++i) usleep(3000);
+    auto t_ui1 = std::chrono::high_resolution_clock::now();
+    /* 分段计时：定位"慢"来自 NPU 推理 / CPU 画框 / UI 显示跟不上 */
+    double draw_ms = std::chrono::duration<double, std::milli>(t_draw1 - t_draw0).count();
+    double ui_ms = std::chrono::duration<double, std::milli>(t_ui1 - t_draw1).count();
+    SPDLOG_INFO("frame {} timing: pre={:.1f} infer={:.1f} draw={:.1f} uiwait={:.1f} ms",
+                cur_idx, r.preprocess_us / 1000.0, r.inference_us / 1000.0,
+                draw_ms, ui_ms);
 
     char savepath[512] = "";
     /* 保存到时间戳子目录（仅在有检测结果时存图）。
@@ -910,12 +919,15 @@ int run_ui_mode(const AppConfig &cfg) {
 
   /* 主循环：永不因推理完成退出，只在 退出按钮 时结束。
    * 存最近一帧，每轮用当前竖线/目标值重判 → 拖线时判定实时更新。 */
+  int ui_pop_cnt = 0;   /* UI 计时诊断：每 10 次 pop 打印一次分段耗时 */
   while (true) {
     FramePayload payload;
     if (g_bus.pop(payload)) {
+      auto p0 = std::chrono::high_resolution_clock::now();
       g_last_payload = payload;
       g_has_last = true;
       ui_canvas_set_bgr(payload.frame);
+      auto p_canvas = std::chrono::high_resolution_clock::now();
       /* 物料信息：每处理一张图追加一行(图1: ... / 图2: ...) */
       if (g_info_box) {
         info_idx++;
@@ -942,6 +954,13 @@ int run_ui_mode(const AppConfig &cfg) {
         if (info_buf.size() > 4000) info_buf.erase(0, info_buf.size() - 4000);
         lv_textarea_set_text(g_info_box, info_buf.c_str());
         lv_textarea_set_cursor_pos(g_info_box, LV_TEXTAREA_CURSOR_LAST);
+      }
+      auto p_info = std::chrono::high_resolution_clock::now();
+      /* UI 分段诊断：canvas 显示 / info 文本框 耗时 */
+      if (++ui_pop_cnt % 10 == 1) {
+        SPDLOG_INFO("ui timing: canvas={:.1f} info_box={:.1f} ms",
+            std::chrono::duration<double, std::milli>(p_canvas - p0).count(),
+            std::chrono::duration<double, std::milli>(p_info - p_canvas).count());
       }
     }
     if (g_has_last) run_judgment(g_last_payload);
@@ -984,6 +1003,7 @@ int run_ui_mode(const AppConfig &cfg) {
     append_log(log_dbgerr_buf, nd);
     bool mode_changed = (g_log_mode != last_log_mode);
     bool cur_new = (g_log_mode == 0 ? !ni.empty() : !nd.empty());
+    auto p_log0 = std::chrono::high_resolution_clock::now();
     if (g_log_view && (mode_changed || cur_new)) {
       const std::string &shown =
           (g_log_mode == 0) ? log_info_buf : log_dbgerr_buf;
@@ -991,14 +1011,23 @@ int run_ui_mode(const AppConfig &cfg) {
       lv_textarea_set_cursor_pos(g_log_view, LV_TEXTAREA_CURSOR_LAST);
       last_log_mode = g_log_mode;
     }
+    auto p_log1 = std::chrono::high_resolution_clock::now();
 
     if (g_state != ST_RUNNING && config::poll_hot_reload())
       sync_config_to_ui();
     if (config::poll_save_due())
       config::save();
 
+    auto p_tick0 = std::chrono::high_resolution_clock::now();
     ui_tick();
+    auto p_tick1 = std::chrono::high_resolution_clock::now();
     check_worker_done();
+    /* UI 分段诊断：log_view 文本框 / ui_tick(LVGL渲染+SDL) 耗时 */
+    if (ui_pop_cnt % 10 == 1) {
+      SPDLOG_INFO("ui timing: log_view={:.1f} tick={:.1f} ms",
+          std::chrono::duration<double, std::milli>(p_log1 - p_log0).count(),
+          std::chrono::duration<double, std::milli>(p_tick1 - p_tick0).count());
+    }
     usleep(5000);
   }
   return 0;
