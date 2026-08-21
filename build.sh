@@ -12,6 +12,6 @@ make -j$(nproc) -C "$BUILD_DIR"
 
 echo "==> Build done."
 echo "    主程序(Qt):   $BUILD_DIR/yolov8_sam_demo_qt"
-echo "    headless:    $BUILD_DIR/yolov8_sam_demo_headless"
+echo "    headless:    $BUILD_DIR/yolov8_sam_demo"
 echo ""
 echo "==> 相机配置: docs/camera_setup.md (海康 MVS SDK)"

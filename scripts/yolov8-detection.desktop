@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=推块物料智能视觉检测系统
+Name[en]=Material Vision Detection System
+Comment=推块物料智能视觉检测(海康相机 + RKNN NPU,root 运行)
+Comment[en]=Industrial vision detection (HikVision camera + RKNN NPU)
+Exec=/home/forlinx/lvgl/RK3588/run_as_root.sh
+Icon=/home/forlinx/.local/share/icons/yolov8-detection.png
+Terminal=false
+Categories=Utility;Science;
+StartupNotify=true
