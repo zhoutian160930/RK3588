@@ -167,8 +167,9 @@ static void worker_fn() {
     ImageProcess ip(out.cols, out.rows, 640);
     ip.ImagePostProcess(out, r.results);
 
-    float llf = g_line_left_x.load() / (float)VW;
-    float rrf = g_line_right_x.load() / (float)VW;
+    /* clamp 到 [0,1]: 防御上游坐标异常,保证线始终画在图像内 */
+    float llf = std::clamp(g_line_left_x.load() / (float)VW, 0.0f, 1.0f);
+    float rrf = std::clamp(g_line_right_x.load() / (float)VW, 0.0f, 1.0f);
     int target = g_target_count.load();
     int bc = g_box_class.load(), mc = g_material_class.load();
     auto boxes = judge_all_boxes(r.results, out.cols, llf, rrf, target, bc, mc);

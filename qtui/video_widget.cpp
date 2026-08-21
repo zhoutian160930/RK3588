@@ -64,6 +64,7 @@ void VideoWidget::setFrame(const cv::Mat &bgr) {
     p.drawImage(cached_pix_.rect(), img.scaled(cached_pix_.size()));
   }
   drawn_rect_ = dr;
+  syncLinesToPipeline(); /* 首帧/分辨率变化后立即同步竖线到 pipeline */
   update();
 }
 
@@ -76,11 +77,11 @@ void VideoWidget::setLineFracs(double left, double right) {
 
 void VideoWidget::syncLinesToPipeline() {
   if (drawn_rect_.width() > 0) {
+    /* pipeline 期望图像内坐标 [0, img_w],不能混入 letterbox 黑边偏移
+     * (drawn_rect_.x()),否则宽屏下右线比例会 >1 被画出图外 */
     pipeline::g_view_width = drawn_rect_.width();
-    pipeline::g_line_left_x.store(
-        (int)(left_frac_ * drawn_rect_.width() + drawn_rect_.x()));
-    pipeline::g_line_right_x.store(
-        (int)(right_frac_ * drawn_rect_.width() + drawn_rect_.x()));
+    pipeline::g_line_left_x.store((int)(left_frac_ * drawn_rect_.width()));
+    pipeline::g_line_right_x.store((int)(right_frac_ * drawn_rect_.width()));
   }
 }
 

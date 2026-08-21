@@ -12,6 +12,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <ctime>
@@ -352,10 +353,9 @@ void MainWindow::pollFrame() {
     if (!isMinimized()) video_->setFrame(payload.frame);
 
     /* 物料信息一行 */
-    float llf = pipeline::g_line_left_x.load() /
-                (float)(pipeline::g_view_width > 0 ? pipeline::g_view_width : 1);
-    float rrf = pipeline::g_line_right_x.load() /
-                (float)(pipeline::g_view_width > 0 ? pipeline::g_view_width : 1);
+    float vw1 = pipeline::g_view_width > 0 ? pipeline::g_view_width : 1;
+    float llf = std::clamp(pipeline::g_line_left_x.load() / vw1, 0.0f, 1.0f);
+    float rrf = std::clamp(pipeline::g_line_right_x.load() / vw1, 0.0f, 1.0f);
     int bc = pipeline::g_box_class.load(), mc = pipeline::g_material_class.load();
     int tgt = pipeline::g_target_count.load();
     auto boxes =
@@ -383,8 +383,8 @@ void MainWindow::runJudgment(const FramePayload &p) {
     return;
   }
   float vw = pipeline::g_view_width > 0 ? pipeline::g_view_width : 1;
-  float llf = pipeline::g_line_left_x.load() / vw;
-  float rrf = pipeline::g_line_right_x.load() / vw;
+  float llf = std::clamp(pipeline::g_line_left_x.load() / vw, 0.0f, 1.0f);
+  float rrf = std::clamp(pipeline::g_line_right_x.load() / vw, 0.0f, 1.0f);
   int target = pipeline::g_target_count.load();
   auto boxes =
       judge_all_boxes(p.results, p.orig_w, llf, rrf, target,
