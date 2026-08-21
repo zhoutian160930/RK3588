@@ -57,12 +57,9 @@ void RknnPool::AddInferenceTask(std::shared_ptr<cv::Mat> src,
   pool_->enqueue(
       [this, src, image_process, tag](std::shared_ptr<cv::Mat> original_img) mutable {
         auto preprocess_start = Clock::now();
-        auto convert_img = image_process.Convert(*original_img);
+        /* RGA 加速:letterbox + BGR→RGB 一次完成;失败自动回退 CPU 路径 */
+        auto convert_img = image_process.Convert(*original_img, /*to_rgb=*/true);
         auto mode_id = get_model_id();
-        cv::Mat rgb_img = cv::Mat::zeros(
-            this->models_[mode_id]->get_model_width(),
-            this->models_[mode_id]->get_model_height(), convert_img->type());
-        cv::cvtColor(*convert_img, rgb_img, cv::COLOR_BGR2RGB);
         auto preprocess_end = Clock::now();
         int64_t pre_us = std::chrono::duration_cast<Microseconds>(
             preprocess_end - preprocess_start).count();
@@ -70,7 +67,7 @@ void RknnPool::AddInferenceTask(std::shared_ptr<cv::Mat> src,
 
         auto infer_start = Clock::now();
         object_detect_result_list od_results;
-        this->models_[mode_id]->Inference(rgb_img.ptr(), &od_results,
+        this->models_[mode_id]->Inference(convert_img->ptr(), &od_results,
                                           image_process.get_letter_box());
         auto infer_end = Clock::now();
         int64_t inf_us = std::chrono::duration_cast<Microseconds>(
