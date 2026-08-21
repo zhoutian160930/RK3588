@@ -1,0 +1,8 @@
+# 允许 forlinx 免密以 root 运行检测程序(GPIO sysfs 输出需要 root),
+# 并允许归还输出目录属主(root 运行产生的文件还给普通用户)。
+# 仅授权指定二进制与参数完全匹配的 chown,不放开其他 sudo 权限。
+# 一次性安装(注意: 目标文件名不能带 '.',sudo 会忽略 sudoers.d 中带点的文件):
+#   sudo cp scripts/90-yolov8-root.sudoers /etc/sudoers.d/90-yolov8-root
+#   sudo chmod 440 /etc/sudoers.d/90-yolov8-root
+forlinx ALL=(root) NOPASSWD: /home/forlinx/lvgl/RK3588/build/yolov8_sam_demo_qt
+forlinx ALL=(root) NOPASSWD: /usr/bin/chown -R forlinx\:forlinx /home/forlinx/lvgl/output
