@@ -13,6 +13,7 @@
 
 #if WITH_UI
 #include "ui_app.h"
+#endif
 #include "app_config.h"
 #include "config.h"
 #include "logger.h"
@@ -22,7 +23,6 @@
 #include "judgment.h"
 #include <spdlog/spdlog.h>
 #include <thread>
-#endif
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds Milliseconds;
 // ===== 新增：微秒类型，统计耗时更精准，可选保留 =====

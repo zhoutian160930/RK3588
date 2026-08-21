@@ -9,8 +9,8 @@ make -j$(nproc)
 ```
 
 - **Target**: aarch64 Linux (Rockchip RK3588). Build is cross-compiled on x86.
-- **Output**: `yolov8_sam_demo` (main) and `ui_test` (LVGL UI smoke test).
-- **LVGL source**: External paths in `CMakeLists.txt` point to `/home/ubuntu/lvgl-release-v8.3` and `/home/ubuntu/lv_port_linux-release-v8.3`. These are pre-installed on the build machine.
+- **Output**: `yolov8_sam_demo_qt` (main, Qt Widgets UI) and `yolov8_sam_demo` (headless CLI).
+- **Qt**: Uses system Qt5 Widgets (`qtbase5-dev`). UI code lives in `qtui/`; inference pipeline is UI-independent in `core/pipeline.cpp`.
 - **Private libs**: `lib/librknnrt.so` and `lib/librga.so` are prebuilt Rockchip libraries — do not attempt to rebuild them.
 
 ## Project structure
@@ -20,7 +20,7 @@ make -j$(nproc)
 | `include/` | RKNN API headers, YOLOv8 inference, common types |
 | `utils/` | Runtime components: YOLOv8, MobileSAM, RKNN pool, image/video/camera I/O. Compiled into `yolov8-utils` static lib. |
 | `core/` | Application-layer modules: config (JSON hot-reload), CAN bus, GPIO (TCA6424), camera capture, judgment logic, frame bus, logging |
-| `ui/` | LVGL UI: main loop + canvas + file browser + app controller. Uses SDL2 backend. Compiled into `ui_lib` static lib. |
+| `qtui/` | Qt Widgets UI: toolbar + video widget (draggable detection lines) + stats dock + log tabs. Bridges to `core/pipeline` via QTimers. |
 | `config/` | Runtime config directory (gitignored). Holds `parameters.json` — auto-generated with defaults on first run. |
 | `model/` | RKNN model files (not tracked). Expected at runtime in CWD. |
 
@@ -28,7 +28,7 @@ make -j$(nproc)
 
 Two modes, selected at build time by `WITH_UI` define:
 
-- **`WITH_UI=1` (default)**: GUI app with LVGL+SDL2. Launches UI if `DISPLAY` is set; falls back to headless otherwise. Force with `--ui` / `--headless`.
+- **Qt UI** (default target `yolov8_sam_demo_qt`): fullscreen on launch, Esc toggles windowed. Headless CLI still available via `yolov8_sam_demo`.
 - **`WITH_UI=0`** (build without UI): CLI-only. Takes input path as first argument.
 
 ## Configuration system (`core/config.h`, `core/config.cpp`)
@@ -41,9 +41,9 @@ Two modes, selected at build time by `WITH_UI` define:
 
 ## Key conventions
 
-- **Paths are hard-coded** in `parameters.json` to `/home/ubuntu/lvgl/...`. When deploying to a different board, update config paths.
-- **Chinese font**: Searches `/home/ubuntu/lvgl/yolov8/fonts/NotoSansCJK-Regular.ttc` first, then system fallback. Set via `font_path` in config.
-- **LVGL backend**: Select `SDL` (development on host with display) or `FBDEV` (production on framebuffer device) via `-DLVGL_BACKEND=FBDEV`.
+- **Paths** in `parameters.json` point to `/home/forlinx/lvgl/...`. Update when deploying elsewhere.
+- **Chinese font**: Qt uses system Noto CJK automatically.
+- **Qt platform**: xcb on desktop; eglfs/linuxfb available for production kiosk (set `QT_QPA_PLATFORM`).
 - **No package manager**: All deps (OpenCV, SDL2, FreeType, spdlog) must be pre-installed on the build machine.
 - **RKNN models** (`*.rknn`) are pre-converted Rockchip NPU models. Not committed to git. Placed in `model/` at runtime.
 - **Optional components**: SAM, CAN bus, GPIO, and camera each have enable flags in config — code guards them appropriately.

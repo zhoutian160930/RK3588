@@ -4,7 +4,7 @@
 
 **RK3588 YOLOv8-SAM 工业视觉检测系统**
 
-部署于 Rockchip RK3588 平台的产线视觉检测设备，使用 YOLOv8（NPU 加速）+ 可选 MobileSAM 分割，对工业产品（如曲奇饼干、藏药等包装盒）实时检测装料完整性，判断满料合格性，并通过 **CAN 总线 + GPIO（TCA6424）** 与产线 PLC 联动，配 **LVGL + SDL2 触屏界面** 供现场操作。
+部署于 Rockchip RK3588 平台的产线视觉检测设备，使用 YOLOv8（NPU 加速）+ 可选 MobileSAM 分割，对工业产品（如曲奇饼干、藏药等包装盒）实时检测装料完整性，判断满料合格性，并通过 **CAN 总线 + GPIO（TCA6424）** 与产线 PLC 联动，配 **Qt Widgets 全屏界面** 供现场操作。
 
 - **目标硬件**：RK3588 开发板（aarch64 Linux）+ OPT（奥普特）GigE 工业相机
 - **典型场景**：食品/药品包装产线上检测包装盒内物料是否装够数量（如 4 个曲奇）
@@ -45,8 +45,6 @@ RK3588/
 ├── AGENTS.md                    # 项目说明文档（构建/结构/约定）
 ├── CMakeLists.txt               # 顶层 CMake 构建文件（主入口）
 ├── build.sh                     # 一键构建脚本
-├── lv_conf.h                    # LVGL 配置（色深32、字体、FreeType 等，~700 行）
-├── lv_drv_conf.h                # LVGL 驱动配置
 ├── yolov8_sam_demo.cpp          # ★ 主程序入口（354 行）
 ├── camera_demo.cpp              # USB 摄像头演示（CMake 中已注释禁用）
 ├── imagefile_demo.cpp           # 单图检测演示（已禁用）
@@ -78,14 +76,13 @@ RK3588/
 │   ├── logger.h / logger.cpp    #   spdlog 日志（控制台+文件）
 │   └── ui_log.h / ui_log.cpp    #   UI 日志缓冲（info / warn+err 双通道）
 │
-├── ui/                          # ★ LVGL 图形界面层
-│   ├── CMakeLists.txt           #   UI 子构建（ui_lib 静态库 + ui_test）
-│   ├── ui_main.h / ui_main.cpp  #   LVGL/SDL 初始化、中文字体加载、tick 驱动
-│   ├── ui_app.h / ui_app.cpp    #   ★ 主界面（~1000 行）：布局、推理工作线程、判定显示
-│   ├── ui_canvas.h / ui_canvas.cpp       # 画布组件（cv::Mat→LVGL 显示）
-│   ├── ui_filebrowser.h / ui_filebrowser.cpp # 模态文件浏览器（选模型/标签/输入）
-│   ├── ui_test.cpp              #   UI 通路验证小程序（独立可执行）
-│   └── mouse_cursor_icon.c      #   鼠标光标图标数据
+├── qtui/                        # ★ Qt Widgets 图形界面层
+│   ├── CMakeLists.txt           #   UI 子构建（yolov8_sam_demo_qt 可执行）
+│   ├── qt_main.cpp              #   QApplication 入口（全屏,初始化顺序同旧版 main）
+│   ├── mainwindow.h / mainwindow.cpp  #   ★ 主窗口：工具栏7按钮/Dock布局/QTimer桥
+│   ├── video_widget.h / video_widget.cpp  #   视频显示(letterbox)+两条可拖竖线
+│   ├── stats_panel.h / stats_panel.cpp    #   生产统计面板(计数/判定/目标数/文件)
+│   └── log_panel.h / log_panel.cpp        #   底部三标签(物料信息/运行日志/警告报警)
 │
 ├── utils/                       # ★ 运行时组件（编译为 yolov8-utils 静态库）
 │   ├── CMakeLists.txt           #   生成 yolov8-utils 库
@@ -125,13 +122,9 @@ RK3588/
 ├── outputs/                     # 默认输出目录（CLI 模式用，当前空）
 │
 ├── build/                       # 构建产物（gitignored）
-│   ├── yolov8_sam_demo          #   ★ 主可执行程序（13.8 MB）
-│   ├── camera_aravis            #   Aravis 相机守护进程
-│   ├── ui/ui_test               #   UI 测试程序（1.5 MB）
-│   ├── lib/                     #   liblvgl.a, liblv_drivers_lib.a
-│   ├── ui/libui_lib.a           #   UI 库
-│   ├── utils/libyolov8-utils.a  #   工具库
-│   └── lvgl_build/              #   LVGL 构建中间产物
+│   ├── qtui/yolov8_sam_demo_qt  #   ★ 主可执行程序（Qt 全屏 UI）
+│   ├── yolov8_sam_demo          #   headless CLI 版
+│   └── utils/libyolov8-utils.a  #   工具库
 │
 └── .gitignore
 ```
@@ -147,22 +140,18 @@ RK3588/
 - **OpenCV**：`find_package(OpenCV REQUIRED)`
 - **MVS SDK（海康威视）**：硬编码 `/userdata/MVS`（`/opt/MVS` 软链接，含 include/lib）
 - **子目录**：`add_subdirectory(utils)`（生成 `yolov8-utils` 库）
-- **LVGL UI 集成**（`option(ENABLE_UI ON)`）：
-  - 外部 LVGL 源码：`LVGL_SRC_DIR=/home/ubuntu/lvgl-release-v8.3`、`lv_drivers`
-  - 后端可选 `SDL`（开发）或 `FBDEV`（量产 framebuffer）
-  - 依赖 **SDL2、FreeType（中文）、spdlog**
-  - 构建 `lvgl`、`lv_drivers_lib`、`ui_lib` 三个静态库
+- **Qt UI 集成**（`option(ENABLE_QT_UI ON)`）：
+  - 依赖 **Qt5 Widgets（系统包）、spdlog**；中文字体走系统 Noto CJK
+  - 目标 `yolov8_sam_demo_qt`（qtui/ 目录）
 - **可执行目标**：
-  - `yolov8_sam_demo`（主程序）— 链接 OpenCV + yolov8-utils；UI 启用时再链接 ui_lib + lvgl + spdlog，并定义 `WITH_UI=1`
+  - `yolov8_sam_demo_qt`（主程序,Qt 全屏 UI）— OpenCV + yolov8-utils + core + Qt5::Widgets
+  - `yolov8_sam_demo`（headless CLI 版）
   - `camera_demo` / `imagefile_demo` / `videofile_demo`（**已注释，不构建**）
 
 ### 4.2 `build.sh` 关键环境变量
 
 ```bash
-LVGL_SRC="${LVGL_SRC:-/home/forlinx/lvgl-release-v8.3}"
-LV_DRIVERS_PARENT="${LV_DRIVERS_PARENT:-/home/forlinx/lv_port_linux-release-v8.3}"
-LVGL_BACKEND="${LVGL_BACKEND:-SDL}"      # SDL 或 FBDEV
-BUILD_TYPE="${BUILD_TYPE:-Release}"
+BUILD_TYPE="${BUILD_TYPE:-Release}"      # 唯一环境变量
 ```
 
 执行 `cmake -B build ...` + `make -j$(nproc)`。
@@ -175,10 +164,10 @@ cd /home/forlinx/lvgl/RK3588
 ./build.sh                      # 或手动 cmake + make
 
 # 2. 配置相机（首次，需 root）
-sudo ./scripts/setup_camera.sh  # 网口检查→IP 配置→发现相机→装 SDK→验证
+# 相机配置见 docs/camera_setup.md(IP 已持久化,无需重复)
 
-# 3. 运行（相机模式需 root，GigE Vision 要 raw socket）
-sudo ./build/yolov8_sam_demo    # 默认 UI 模式
+# 3. 运行
+./build/qtui/yolov8_sam_demo_qt   # Qt 全屏 UI(Esc 临时切窗口化)
 # 无头 CLI：
 ./build/yolov8_sam_demo /home/forlinx/lvgl/img_test/曲奇 --headless
 
@@ -278,8 +267,7 @@ sudo ./build/yolov8_sam_demo    # 默认 UI 模式
 | 依赖 | 用途 |
 |------|------|
 | OpenCV | 图像 IO、颜色转换、画框、视频读取 |
-| SDL2 | LVGL 显示/输入后端（开发模式） |
-| FreeType | LVGL 中文字体渲染（NotoSansCJK） |
+| Qt5 Widgets | 图形界面（系统 qtbase5-dev，xcb/eglfs 后端） |
 | spdlog + fmt | 日志（控制台 + 文件双 sink） |
 | CMake ≥ 3.16 | 构建系统 |
 | Aravis（可选） | `camera_aravis.c` 备选相机方案 |
@@ -293,8 +281,7 @@ sudo ./build/yolov8_sam_demo    # 默认 UI 模式
 
 ### 外部源码（预装于构建机）
 
-- LVGL v8.3（`/home/forlinx/lvgl-release-v8.3`）
-- lv_port_linux + lv_drivers（`/home/forlinx/lv_port_linux-release-v8.3`）
+- Qt 5.15.3（系统 qtbase5-dev，arm64）
 - 海康 MVS SDK（`/userdata/MVS`，Samples 含官方例程）
 
 ### 语言/标准
@@ -336,9 +323,7 @@ C++17、C99、CMake、Bash、C（camera_aravis / lv_drivers）
 | `yolov8_sam_demo` | 13.8 MB | **主可执行程序**（UI + CLI 双模式） |
 | `ui/ui_test` | 1.5 MB | UI 通路验证程序 |
 | `camera_aravis` | 18 KB | Aravis 相机守护进程 |
-| `lib/liblvgl.a` | — | LVGL 静态库 |
-| `lib/liblv_drivers_lib.a` | — | LVGL 驱动库 |
-| `ui/libui_lib.a` | — | UI 应用库 |
+
 | `utils/libyolov8-utils.a` | — | 算法工具库 |
 
 ---
@@ -364,4 +349,4 @@ C++17、C99、CMake、Bash、C（camera_aravis / lv_drivers）
 
 ## 十一、一句话总结
 
-一套部署在 **RK3588 + OPT 工业相机**上的**工业产线视觉检测系统**，用 YOLOv8（NPU 加速）实时检测包装盒内物料数量，判断满料合格性，通过 CAN 总线和 GPIO 与产线 PLC 联动，并配 LVGL 触屏界面供现场操作。
+一套部署在 **RK3588 + OPT 工业相机**上的**工业产线视觉检测系统**，用 YOLOv8（NPU 加速）实时检测包装盒内物料数量，判断满料合格性，通过 CAN 总线和 GPIO 与产线 PLC 联动，并配 Qt 全屏界面供现场操作。
