@@ -49,7 +49,7 @@ std::string trim_path(const std::string &p) {
 }  // namespace
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
-  setWindowTitle(QStringLiteral("YOLOv8 满料检测系统"));
+  setWindowTitle(QStringLiteral("推块物料智能视觉检测系统"));
   /* 右上角系统按钮:最小化(缩到任务栏)/缩放(最大化↔窗口)/关闭(退出) */
   setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint |
                  Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint);

@@ -12,8 +12,9 @@ SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -Wno-unused-parameter -O3 -g -Wall")
 include_directories(include)
 include_directories(utils)
 
-# MVS SDK (海康威视工业相机 ARM64 SDK, 安装于 /userdata/MVS, /opt/MVS 为软链接)
-set(MVS_SDK_DIR "/userdata/MVS")
+# MVS SDK (海康威视工业相机 ARM64 SDK)。默认 /userdata/MVS(/opt/MVS 为软链接),
+# 新主机路径不同时: cmake -DMVS_SDK_DIR=/your/path ..
+set(MVS_SDK_DIR "/userdata/MVS" CACHE PATH "HikVision MVS SDK install path")
 include_directories(${MVS_SDK_DIR}/include)
 link_directories(${MVS_SDK_DIR}/lib/aarch64 /usr/lib)
 set(CMAKE_BUILD_RPATH "${MVS_SDK_DIR}/lib/aarch64")

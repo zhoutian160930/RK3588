@@ -50,3 +50,7 @@ target_link_libraries(yolov8_sam_demo_qt PRIVATE
     pthread
 )
 target_compile_definitions(yolov8_sam_demo_qt PRIVATE SPDLOG_COMPILED_LIB)
+
+# 可执行文件直接输出到 build/ 下(不要 build/qtui/ 多套一层)
+set_target_properties(yolov8_sam_demo_qt PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
