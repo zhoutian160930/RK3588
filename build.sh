@@ -24,7 +24,8 @@ cmake -B "$BUILD_DIR" \
 make -j$(nproc) -C "$BUILD_DIR"
 
 echo "==> Build done."
-echo "    主程序: $BUILD_DIR/yolov8_sam_demo"
+echo "    主程序(LVGL): $BUILD_DIR/yolov8_sam_demo"
+echo "    主程序(Qt):   $BUILD_DIR/qtui/yolov8_sam_demo_qt"
 echo "    UI 测试: $BUILD_DIR/ui/ui_test"
 echo ""
 echo "==> 相机配置: docs/camera_setup.md (海康 MVS SDK)"

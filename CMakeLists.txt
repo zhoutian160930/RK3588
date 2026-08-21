@@ -94,3 +94,9 @@ if(ENABLE_UI)
     target_link_libraries(yolov8_sam_demo ui_lib lv_drivers_lib lvgl ${SPDLOG_LIB} fmt)
     target_compile_definitions(yolov8_sam_demo PRIVATE WITH_UI=1)
 endif()
+
+# ===================== Qt UI(并行验证版) =====================
+option(ENABLE_QT_UI "Build Qt Widgets UI (yolov8_sam_demo_qt)" ON)
+if(ENABLE_QT_UI)
+    add_subdirectory(qtui)
+endif()
