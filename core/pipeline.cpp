@@ -148,12 +148,18 @@ static void worker_fn() {
     return;
   }
 
-  std::time_t now_t = std::time(nullptr);
-  char ts[32];
-  std::strftime(ts, sizeof(ts), "%Y%m%d_%H%M%S", std::localtime(&now_t));
-  std::string save_dir = config::g.detImg_root + "/" + ts;
-  fs::create_directories(save_dir);
-  SPDLOG_INFO("save_dir={}", save_dir);
+  /* 存图目录:每次程序启动共用一个(首次运行创建),重复点"开始"不再新建 */
+  static const std::string save_dir = [] {
+    std::time_t now_t = std::time(nullptr);
+    char ts[32];
+    std::strftime(ts, sizeof(ts), "%Y%m%d_%H%M%S", std::localtime(&now_t));
+    std::string d = config::g.detImg_root + "/" + ts;
+    fs::create_directories(d);
+    return d;
+  }();
+  /* 存图文件序号:跨多次"开始"单调递增,同一目录内不覆盖旧图 */
+  static std::atomic<int> save_idx{0};
+  SPDLOG_INFO("save_dir={} (本次程序运行共用)", save_dir);
 
   int submitted = 0;
   auto stopped = [&] { return g_stop.load(); };
@@ -240,9 +246,11 @@ static void worker_fn() {
         ui_ms);
 
     char savepath[512] = "";
+    /* 用跨运行单调递增的序号命名,同一目录多次"开始"不覆盖旧图 */
+    int sidx = save_idx.fetch_add(1);
     if (sum.total > 0) {
       snprintf(savepath, sizeof(savepath), "%s/%05d.jpg", save_dir.c_str(),
-               cur_idx);
+               sidx);
       image_saver::enqueue(out, savepath);
     }
 
@@ -264,7 +272,7 @@ static void worker_fn() {
         sboxes.push_back({d.box.left, d.box.top, d.box.right, d.box.bottom});
       }
       char nm[512];
-      snprintf(nm, sizeof(nm), "%s/%05d_sam.jpg", save_dir.c_str(), cur_idx);
+      snprintf(nm, sizeof(nm), "%s/%05d_sam.jpg", save_dir.c_str(), sidx);
       sam->AddInferenceTask(*r.img, nm, sboxes);
     }
     g_proc_count++;
