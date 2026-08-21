@@ -1,7 +1,7 @@
 {
   "material_class": 0,
   "box_class": 1,
-  "target_count": 4,
+  "target_count": 9,
   "line_left_frac": 0.172414,
   "line_right_frac": 0.928945,
   "yolo_model": "/home/forlinx/lvgl/yolomodel/藏药.rknn",

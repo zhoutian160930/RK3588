@@ -34,6 +34,8 @@ int main(int argc, char *argv[]) {
 
   QApplication app(argc, argv);
   MainWindow w;
-  w.showFullScreen(); /* 全屏启动(决策);Esc 切窗口化 */
+  /* 最大化启动(保留系统标题栏:右上角 最小化/缩放/关闭 三按钮;
+   * 缩放=最大化↔窗口切换,关闭=走 closeEvent 清理退出) */
+  w.showMaximized();
   return app.exec();
 }

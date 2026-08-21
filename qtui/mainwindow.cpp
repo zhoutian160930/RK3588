@@ -50,6 +50,9 @@ std::string trim_path(const std::string &p) {
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   setWindowTitle(QStringLiteral("YOLOv8 满料检测系统"));
+  /* 右上角系统按钮:最小化(缩到任务栏)/缩放(最大化↔窗口)/关闭(退出) */
+  setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint |
+                 Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint);
   resize(1280, 720);
 
   video_ = new VideoWidget(this);
@@ -112,12 +115,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   connect(camera_timer_, &QTimer::timeout, this, &MainWindow::pollCamera);
   camera_timer_->start(60);
 
-  /* Esc: 全屏/窗口切换(调试便利) */
+  /* Esc: 最大化/窗口化切换(与标题栏缩放按钮一致) */
   auto *esc = new QAction(this);
   esc->setShortcut(Qt::Key_Escape);
   addAction(esc);
   connect(esc, &QAction::triggered, this, [this] {
-    isFullScreen() ? showNormal() : showFullScreen();
+    isMaximized() ? showNormal() : showMaximized();
   });
 }
 
@@ -345,7 +348,8 @@ void MainWindow::pollFrame() {
   if (pipeline::g_bus.pop(payload)) {
     pipeline::g_last_payload = payload;
     pipeline::g_has_last = true;
-    video_->setFrame(payload.frame);
+    /* 最小化时跳过渲染(bus 必须继续 pop,防 worker 背压等待) */
+    if (!isMinimized()) video_->setFrame(payload.frame);
 
     /* 物料信息一行 */
     float llf = pipeline::g_line_left_x.load() /
@@ -438,7 +442,7 @@ void MainWindow::pollCamera() {
   if (camera_capture::grab(frame)) {
     pipeline::g_last_payload = FramePayload{frame, {}, frame.cols, frame.rows};
     pipeline::g_has_last = true;
-    video_->setFrame(frame);
+    if (!isMinimized()) video_->setFrame(frame);  /* 最小化时跳过渲染 */
     if (pipeline::g_capture_mode.load() && !capture_dir_.empty()) {
       char sp[512];
       snprintf(sp, sizeof(sp), "%s/%06d.jpg", capture_dir_.c_str(),
