@@ -70,7 +70,7 @@ RK3588/
 │   ├── config.h / config.cpp    #   ★ JSON 配置系统（热加载/自动保存，全局单例 config::g）
 │   ├── judgment.h / judgment.cpp#   ★ 满料判定逻辑（多盒、双竖线检测区）
 │   ├── frame_bus.h / frame_bus.cpp  # 线程安全帧信箱（推理线程→UI 线程）
-│   ├── camera_capture.h/.cpp    #   ★ OPT 工业相机采集（SciCamSDK）
+│   ├── camera_capture.h/.cpp    #   ★ 海康工业相机采集（MVS SDK）
 │   ├── can_bus.h / can_bus.cpp  #   ★ CAN 总线结果发送
 │   ├── gpio_out.h / gpio_out.cpp#   ★ GPIO 合格信号输出（TCA6424）
 │   ├── gpio_in.h / gpio_in.cpp  #   GPIO 输入（暂停/恢复控制）
@@ -118,8 +118,6 @@ RK3588/
 │   └── parameters.json          #   ★ 全局运行参数
 │
 ├── scripts/                     # 部署/配置脚本
-│   ├── install_sdk.sh           #   安装 SciCamSDK 到系统
-│   └── setup_camera.sh          #   ★ OPT 相机一键配置（IP 发现 + SDK 安装）
 │
 ├── docs/
 │   └── camera_setup.md          #   ★ OPT 工业相机配置详尽指南（~286 行）
@@ -147,7 +145,7 @@ RK3588/
 - **项目名**：`yolov8`，C++17 / C99，`Release`，`-O3 -g`
 - **链接库目录**：`${CMAKE_SOURCE_DIR}/lib`（rknnrt、rga）
 - **OpenCV**：`find_package(OpenCV REQUIRED)`
-- **SciCamSDK**：硬编码 `/home/forlinx/SciCamSDK_V1.6.1.5_20250925/...`（OPT 相机 ARM64 SDK）
+- **MVS SDK（海康威视）**：硬编码 `/userdata/MVS`（`/opt/MVS` 软链接，含 include/lib）
 - **子目录**：`add_subdirectory(utils)`（生成 `yolov8-utils` 库）
 - **LVGL UI 集成**（`option(ENABLE_UI ON)`）：
   - 外部 LVGL 源码：`LVGL_SRC_DIR=/home/ubuntu/lvgl-release-v8.3`、`lv_drivers`
@@ -267,7 +265,7 @@ sudo ./build/yolov8_sam_demo    # 默认 UI 模式
 
 ### 5.4 相机采集 `core/camera_capture.cpp`
 
-直接调用 **OPT SciCamSDK** 原生 ARM64 驱动：配置 eth1 IP → `SciCam_DiscoveryDevices` → `CreateDevice/OpenDevice` → 自动曝光增益 → `StartGrabbing`。`grab()` 取帧并 Mono8→BGR 转换。**GigE Vision 需 raw socket，必须 `sudo`。**
+直接调用 **海康 MVS SDK** 原生 ARM64 驱动：配置 eth1 IP → `MV_CC_EnumDevices` → `CreateHandleWithoutLog/OpenDevice` → 最优包长/自动曝光增益/ROI → `LatestImages` 策略 + 缓存节点 2 → `StartGrabbing`。`grab()` 经 `MV_CC_GetImageBuffer` 取帧，Bayer/Mono/RGB 由 OpenCV 转 BGR。
 
 备选方案 `utils/camera_aravis.c`：用 Aravis 开源库，输出共享内存 `/tmp/camera_frame.raw` + `/tmp/camera_info.txt`。
 
@@ -297,7 +295,7 @@ sudo ./build/yolov8_sam_demo    # 默认 UI 模式
 
 - LVGL v8.3（`/home/forlinx/lvgl-release-v8.3`）
 - lv_port_linux + lv_drivers（`/home/forlinx/lv_port_linux-release-v8.3`）
-- OPT SciCamSDK V1.6.1.5（`/home/forlinx/SciCamSDK_...`）
+- 海康 MVS SDK（`/userdata/MVS`，Samples 含官方例程）
 
 ### 语言/标准
 

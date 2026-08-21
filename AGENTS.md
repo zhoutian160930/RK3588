@@ -52,4 +52,4 @@ Two modes, selected at build time by `WITH_UI` define:
 
 - `frame_bus` is a thread-safe mailbox (producer-consumer) for passing inference frames from worker thread to UI thread.
 - `judgment` handles multi-box qualification logic (material count vs target, reveal state).
-- `camera_capture` wraps an OPT industrial camera via `grab_stream` subprocess + `qemu-x86_64-static`.
+- `camera_capture` wraps a HikVision (Hikrobot) industrial camera via the MVS SDK (`libMvCameraControl`, installed under `/userdata/MVS`, symlinked from `/opt/MVS`).

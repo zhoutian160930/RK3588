@@ -14,10 +14,11 @@ SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}  -Wno-unused-parameter -O3 -g -Wall"
 include_directories(include)
 include_directories(utils)
 
-# SciCamSDK (OPT 工业相机 ARM64 SDK)
-set(SCICAM_SDK_DIR "/home/forlinx/SciCamSDK_V1.6.1.5_20250925/Development/Sample/BaseDemoConsole")
-include_directories(${SCICAM_SDK_DIR}/Libraries/include)
-link_directories(${SCICAM_SDK_DIR}/Libraries/linux_arm64 /usr/lib)
+# MVS SDK (海康威视工业相机 ARM64 SDK, 安装于 /userdata/MVS, /opt/MVS 为软链接)
+set(MVS_SDK_DIR "/userdata/MVS")
+include_directories(${MVS_SDK_DIR}/include)
+link_directories(${MVS_SDK_DIR}/lib/aarch64 /usr/lib)
+set(CMAKE_BUILD_RPATH "${MVS_SDK_DIR}/lib/aarch64")
 
 add_subdirectory(utils)
 

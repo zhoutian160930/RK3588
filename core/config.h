@@ -43,13 +43,10 @@ struct Config {
   int gpio_out_pin = 20;               /* TCA6424 引脚号 */
   bool gpio_input_enabled = true;
   int gpio_input_pin = 24;             /* TCA6424 引脚号 */
-  /* 摄像头(OPT 工业相机 via grab_stream+qemu) */
+  /* 摄像头(海康威视工业相机 via MVS SDK) */
   bool camera_enabled = false;
   std::string camera_iface = "eth1";
-  std::string camera_ip = "169.254.100.100/16";
-  std::string camera_grab_bin = "/home/ubuntu/OPTCameraViewer_extracted/grab_stream";
-  std::string camera_qemu_bin = "/usr/bin/qemu-x86_64-static";
-  std::string camera_lib_path = "/home/ubuntu/OPTCameraViewer_extracted/opt/OPTCameraViewer_V3.0.0.2/Development/Bin/Linux_X86_64";
+  std::string camera_ip = "192.168.1.100/24";
   int camera_timeout_ms = 10000;
   /* 相机采集分辨率。0=传感器原生满分辨率(每次启动显式复位，覆盖相机残留的脏配置)。
    * 若需 ROI 降分辨率提帧率，可设为如 1600/1200(保持 4:3，居中裁剪)。改动后需重启程序。 */
