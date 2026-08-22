@@ -25,6 +25,9 @@ static int64_t align_down(int64_t v, int64_t inc) {
   return v - (v % inc);
 }
 
+/* 按 config 应用曝光/增益(定义见 is_ready() 之后),init 时调用 */
+static void apply_exposure_locked();
+
 /* 显式设置相机采集分辨率。
  *   camera_width/height == 0 : 设为传感器原生满分辨率(复位相机可能残留的脏 ROI 配置)
  *   camera_width/height > 0  : 居中裁剪到目标尺寸(ROI)
@@ -122,8 +125,8 @@ bool init(int timeout_ms) {
   int pkt = MV_CC_GetOptimalPacketSize(g_handle);
   if (pkt > 0) MV_CC_SetIntValueEx(g_handle, "GevSCPSPacketSize", pkt);
 
-  MV_CC_SetEnumValue(g_handle, "ExposureAuto", 2);
-  MV_CC_SetEnumValue(g_handle, "GainAuto", 2);
+  /* 曝光/增益:按 config 应用(0/-1=自动,>0/>=0=手动),详见 apply_exposure() */
+  apply_exposure_locked();
 
   /* 显式设置采集分辨率：默认(0)复位为传感器原生满分辨率，覆盖相机残留的脏配置 */
   apply_roi();
@@ -167,6 +170,58 @@ bool init(int timeout_ms) {
 }
 
 bool is_ready() { return g_ready; }
+
+/* 按当前 config 应用曝光/增益。调用方持有 g_mtx(init 时)。
+ * camera_exposure_us: 0=自动曝光;>0=手动(关自动,写入 ExposureTime,自动钳位)
+ * camera_gain:        -1=自动增益;>=0=手动(关自动,写入 Gain) */
+static void apply_exposure_locked() {
+  if (!g_handle) return;
+
+  long exp_us = config::g.camera_exposure_us;
+  if (exp_us > 0) {
+    MV_CC_SetEnumValue(g_handle, "ExposureAuto", 0); /* Off */
+    MVCC_FLOATVALUE range{};
+    if (MV_CC_GetFloatValue(g_handle, "ExposureTime", &range) == MV_OK) {
+      float v = std::max(range.fMin, std::min((float)exp_us, range.fMax));
+      int r = MV_CC_SetFloatValue(g_handle, "ExposureTime", v);
+      if (r == MV_OK)
+        SPDLOG_INFO("camera: 手动曝光 {}us (范围 {:.0f}~{:.0f})", (long)v,
+                    range.fMin, range.fMax);
+      else
+        SPDLOG_WARN("camera: 设曝光失败 (0x{:x}),沿用当前值", (unsigned)r);
+    } else {
+      SPDLOG_WARN("camera: 读曝光范围失败,直接写入 {}us", exp_us);
+      MV_CC_SetFloatValue(g_handle, "ExposureTime", (float)exp_us);
+    }
+  } else {
+    MV_CC_SetEnumValue(g_handle, "ExposureAuto", 2); /* Continuous */
+    SPDLOG_INFO("camera: 自动曝光");
+  }
+
+  double gain = config::g.camera_gain;
+  if (gain >= 0) {
+    MV_CC_SetEnumValue(g_handle, "GainAuto", 0); /* Off */
+    MVCC_FLOATVALUE grange{};
+    float gv = (float)gain;
+    if (MV_CC_GetFloatValue(g_handle, "Gain", &grange) == MV_OK)
+      gv = std::max(grange.fMin, std::min((float)gain, grange.fMax));
+    int r = MV_CC_SetFloatValue(g_handle, "Gain", gv);
+    if (r == MV_OK)
+      SPDLOG_INFO("camera: 手动增益 {} dB", gv);
+    else
+      SPDLOG_WARN("camera: 设增益失败 (0x{:x})", (unsigned)r);
+  } else {
+    MV_CC_SetEnumValue(g_handle, "GainAuto", 2); /* Continuous */
+    SPDLOG_INFO("camera: 自动增益");
+  }
+}
+
+/* 热加载入口:config 变更后由 UI 调用,相机就绪时立即生效(无需重启/重开流) */
+void apply_exposure() {
+  std::lock_guard<std::mutex> lock(g_mtx);
+  if (!g_ready || !g_handle) return;
+  apply_exposure_locked();
+}
 
 bool grab(cv::Mat &out) {
   std::lock_guard<std::mutex> lock(g_mtx);

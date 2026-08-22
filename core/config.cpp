@@ -84,6 +84,8 @@ static void apply_kv(const std::string &k, const std::string &v) {
    else if (k == "camera_timeout_ms") g.camera_timeout_ms = std::atoi(v.c_str());
   else if (k == "camera_width") g.camera_width = std::atoi(v.c_str());
   else if (k == "camera_height") g.camera_height = std::atoi(v.c_str());
+  else if (k == "camera_exposure_us") g.camera_exposure_us = std::atoi(v.c_str());
+  else if (k == "camera_gain") g.camera_gain = std::atof(v.c_str());
 }
 
 static bool load_file() {
@@ -139,8 +141,10 @@ static void write_file() {
   out << "  \"camera_iface\": \"" << g.camera_iface << "\",\n";
    out << "  \"camera_ip\": \"" << g.camera_ip << "\",\n";
    out << "  \"camera_timeout_ms\": " << g.camera_timeout_ms << ",\n";
-  out << "  \"camera_width\": " << g.camera_width << ",\n";
-  out << "  \"camera_height\": " << g.camera_height << "\n";
+   out << "  \"camera_width\": " << g.camera_width << ",\n";
+   out << "  \"camera_height\": " << g.camera_height << ",\n";
+   out << "  \"camera_exposure_us\": " << g.camera_exposure_us << ",\n";
+   out << "  \"camera_gain\": " << g.camera_gain << "\n";
   out << "}\n";
 }
 

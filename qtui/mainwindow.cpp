@@ -430,6 +430,16 @@ void MainWindow::pollConfig() {
   if (pipeline::g_state.load() != pipeline::ST_RUNNING &&
       config::poll_hot_reload())
     syncConfigToUi(false);
+  /* 曝光/增益热加载:配置变化即下发相机,运行中同样生效 */
+  static int last_exp = -1;
+  static double last_gain = -2;
+  int cur_exp = config::g.camera_exposure_us;
+  double cur_gain = config::g.camera_gain;
+  if (cur_exp != last_exp || cur_gain != last_gain) {
+    camera_capture::apply_exposure();
+    last_exp = cur_exp;
+    last_gain = cur_gain;
+  }
   if (config::poll_save_due()) config::save();
 }
 

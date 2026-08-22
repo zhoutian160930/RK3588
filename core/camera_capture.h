@@ -15,6 +15,10 @@ bool grab(cv::Mat &out);
 /* 是否已初始化就绪。 */
 bool is_ready();
 
+/* 按 config::g.camera_exposure_us / camera_gain 应用曝光/增益。
+ * 0/-1=自动;>0/>=0=手动。热加载时调用,相机就绪即生效,无需重启取流。 */
+void apply_exposure();
+
 /* 关闭。 */
 void shutdown();
 }

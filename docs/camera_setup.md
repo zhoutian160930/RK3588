@@ -138,12 +138,14 @@ enum MV_GRAB_STRATEGY {
 
 ### Q: 画面很暗
 
-自动曝光默认开启。若需手动曝光：
+曝光/增益已开放为配置项(`parameters.json`,**热加载,改完即生效无需重启**):
 
-```c
-MV_CC_SetEnumValue(handle, "ExposureAuto", 0);   // Off
-MV_CC_SetFloatValue(handle, "ExposureTime", 50000); // 50ms
+```json
+"camera_exposure_us": 0,      // 0=自动;>0=手动曝光微秒(如 50000=50ms,范围 31~988930)
+"camera_gain": -1.0           // -1=自动;>=0=手动增益 dB(优先调曝光,增益大噪点多)
 ```
+
+优先调大曝光;曝光到顶仍暗再加增益。
 
 ### Q: 需要 root 权限
 

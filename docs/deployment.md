@@ -156,6 +156,8 @@ cd ~/lvgl/RK3588
 | `camera_iface` | 相机所在网口 | `"eth1"` |
 | `camera_ip` | **板端**网口 IP(CIDR) | `"192.168.1.100/24"` |
 | `camera_width/height` | 采集 ROI,0=满分辨率 | `0` / `0` |
+| `camera_exposure_us` | 曝光:0=自动(默认),>0=手动微秒值,热加载即时生效 | `0` |
+| `camera_gain` | 增益 dB:-1=自动(默认),>=0=手动,热加载即时生效 | `-1.0` |
 | `yolo_model` | RKNN 模型绝对路径 | `/home/forlinx/lvgl/yolomodel/曲奇.rknn` |
 | `label_path` | 类别标签 | `/home/forlinx/lvgl/yolomodel/classes.txt` |
 | `box_class` / `material_class` | 盒/物料的类别 ID | `1` / `0` |
