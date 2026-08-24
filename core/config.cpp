@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
+#include <limits.h>
 
 namespace fs = std::filesystem;
 
@@ -13,6 +15,16 @@ namespace config {
 
 Config g;
 std::string file_path;
+
+std::string exe_dir() {
+  char buf[PATH_MAX];
+  ssize_t n = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+  if (n <= 0) return ".";
+  buf[n] = '\0';
+  std::string p(buf);
+  size_t pos = p.find_last_of('/');
+  return pos == std::string::npos ? "." : p.substr(0, pos);
+}
 
 static long last_mtime = 0;          /* 上次已知文件 mtime */
 static bool dirty = false;

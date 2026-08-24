@@ -14,7 +14,7 @@
 #include "mainwindow.h"
 
 int main(int argc, char *argv[]) {
-  config::init("/home/forlinx/lvgl/RK3588/config", "parameters.json");
+  config::init(config::exe_dir() + "/../config", "parameters.json");
   logger::init(config::g.log_root);
   SPDLOG_INFO("==== yolov8_sam_demo (Qt UI) ====");
 

@@ -35,7 +35,7 @@ const std::string LABEL_PATH = "model/coco_80_labels_list.txt";
 
 int main(int argc, char **argv) {
 #if WITH_UI
-    config::init("/home/forlinx/lvgl/RK3588/config", "parameters.json");
+    config::init(config::exe_dir() + "/../config", "parameters.json");
     logger::init(config::g.log_root);             /* 日志目录由配置决定 */
     SPDLOG_INFO("program start, argc={}", argc);
     SPDLOG_INFO("config: material={} box={} target={} lines={:.2f}/{:.2f}",

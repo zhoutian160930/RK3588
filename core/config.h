@@ -14,9 +14,9 @@ struct Config {
   std::string label_path = "model/coco_80_labels_list.txt";
   std::string sam_encoder = "model/mobile_sam_encoder.rknn";
   std::string sam_decoder = "model/mobile_sam_decoder.rknn";
-  std::string detImg_root = "/home/ubuntu/lvgl/output/detImg";
-  std::string saveImg_root = "/home/forlinx/lvgl/output/saveImg";
-  std::string log_root = "/home/ubuntu/lvgl/output/log";
+  std::string detImg_root = "./output/detImg";
+  std::string saveImg_root = "./output/saveImg";
+  std::string log_root = "./output/log";
   int yolo_threads = 3;
   bool use_sam = false;
   int sam_threads = 3;
@@ -65,6 +65,9 @@ namespace config {
 
 extern Config g;                  /* 全局配置实例 */
 extern std::string file_path;     /* config.json 路径 */
+
+/* 可执行文件所在目录(绝对路径,与启动时的工作目录无关)。 */
+std::string exe_dir();
 
 /* 初始化：加载 config/<file>；不存在则生成默认。 */
 void init(const std::string &config_dir = "config",
