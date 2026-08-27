@@ -33,16 +33,14 @@ struct Config {
   std::string can_send_if = "can0";   /* 发送接口 */
   std::string can_recv_if = "can1";   /* 接收接口(本地回环测试) */
   int can_id = 0x300;                 /* 标准 11-bit CAN ID */
-  /* GPIO 结果输出(TCA6424, sysfs 方式)
-   * 公式(自动计算，用户只填引脚号): base=485
-   *   P00-P07: sysfs = base + offset
-   *   P10-P17: sysfs = base + offset - 2
-   *   P20-P27: sysfs = base + offset - 4
-   * 例: out_pin=20(P20) → sysfs=501, in_pin=24(P24) → sysfs=505 */
+  /* GPIO(VR58H3 板载 DO/DI, 命名节点 /sys/class/gpio/gpiof_outN / gpiof_inN)
+   * DO 写值反相: 写0=高电平, 写1=低电平; 业务: 合格→低电平 */
   bool gpio_enabled = true;
-  int gpio_out_pin = 20;               /* TCA6424 引脚号 */
+  int gpio_out_ch = 0;                 /* DO 通道 0-3 (DO1~DO4) */
   bool gpio_input_enabled = true;
-  int gpio_input_pin = 24;             /* TCA6424 引脚号 */
+  int gpio_input_ch = 0;               /* DI 通道 0-3 (DI1~DI4) */
+  int gpio_poll_us = 500;              /* DI 轮询周期(微秒), 对端单脉冲需高频捕捉 */
+  bool gpio_input_latch = true;        /* true: 采到 HIGH 即锁定暂停(单脉冲); false: 电平跟随 */
   /* 摄像头(海康威视工业相机 via MVS SDK) */
   bool camera_enabled = false;
   std::string camera_iface = "eth1";

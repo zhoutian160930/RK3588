@@ -1,5 +1,8 @@
+/* GPIO 输入模块 —— VR58H3 板载 DI(命名节点 /sys/class/gpio/gpiof_inN)。
+ * 对端只发一次信号(单脉冲), 因此:
+ *  - read_fast() 用持久 fd + pread, 单次读取约几微秒, 支撑 500us 级轮询
+ *  - 脉冲锁存由调用方轮询线程实现(连续采样到 HIGH 即锁存暂停) */
 #include "gpio_in.h"
-#include "gpio_utils.h"
 
 #include <fcntl.h>
 #include <spdlog/spdlog.h>
@@ -8,53 +11,52 @@
 
 namespace gpio_in {
 
-static int g_pin = -1;
-static int g_tca_offset = -1;
-static std::string g_value_path;
+static int g_value_fd = -1;
+static int g_ch = -1;
 static std::atomic<bool> g_paused{false};
 
-static bool sysfs_write(const std::string &p, const std::string &v) {
-  int fd = open(p.c_str(), O_WRONLY);
-  if (fd < 0) return false;
-  write(fd, v.c_str(), v.size());
-  close(fd);
-  return true;
-}
-
-bool init(int tca_offset) {
-  g_tca_offset = tca_offset;
-  g_pin = gpio_calc_pin(tca_offset);
-  std::string base = "/sys/class/gpio/gpio" + std::to_string(g_pin);
-  g_value_path = base + "/value";
-
-  if (access(base.c_str(), F_OK) != 0) {
-    if (!sysfs_write("/sys/class/gpio/export", std::to_string(g_pin))) {
-      SPDLOG_WARN("GPIO-in: 导出 P{} (sysfs {}) 失败(需 root)", tca_offset, g_pin);
-      g_pin = -1;
-      return false;
-    }
-    usleep(100000);
+bool init(int ch) {
+  if (ch < 0 || ch > 3) {
+    SPDLOG_WARN("GPIO-in: 通道号 {} 非法(有效 0-3)", ch);
+    return false;
   }
-  sysfs_write(base + "/direction", "in");
-  SPDLOG_INFO("GPIO-in: P{} (sysfs {}) 输入就绪", tca_offset, g_pin);
+  std::string path = "/sys/class/gpio/gpiof_in" + std::to_string(ch) + "/value";
+  g_value_fd = open(path.c_str(), O_RDONLY);
+  if (g_value_fd < 0) {
+    SPDLOG_WARN("GPIO-in: 打开 {} 失败: {}", path, strerror(errno));
+    return false;
+  }
+  g_ch = ch;
+  SPDLOG_INFO("GPIO-in: DI{} ({}) 就绪, 高频轮询模式", ch + 1, path);
   std::atexit(+[] { shutdown(); });
   return true;
 }
 
+int read_fast() {
+  if (g_value_fd < 0) return -1;
+  char c = '0';
+  if (pread(g_value_fd, &c, 1, 0) != 1) return -1;
+  return (c == '1') ? 1 : 0;
+}
+
 int read() {
-  if (g_pin < 0) return -1;
-  char buf[4];
-  int fd = open(g_value_path.c_str(), O_RDONLY);
+  if (g_ch < 0) return -1;
+  std::string path = "/sys/class/gpio/gpiof_in" + std::to_string(g_ch) + "/value";
+  int fd = open(path.c_str(), O_RDONLY);
   if (fd < 0) return -1;
+  char buf[4];
   ssize_t n = ::read(fd, buf, sizeof(buf) - 1);
   close(fd);
   if (n <= 0) return -1;
-  buf[n] = '\0';
   return (buf[0] == '1') ? 1 : 0;
 }
 
 void shutdown() {
-  if (g_pin >= 0) { g_pin = -1; }
+  if (g_value_fd >= 0) {
+    close(g_value_fd);
+    g_value_fd = -1;
+  }
+  g_ch = -1;
 }
 
 bool is_system_paused() { return g_paused.load(); }

@@ -51,7 +51,6 @@ add_executable(yolov8_sam_demo yolov8_sam_demo.cpp
     core/can_bus.cpp
     core/gpio_out.cpp
     core/gpio_in.cpp
-    core/gpio_utils.cpp
     core/image_saver.cpp
     core/logger.cpp
     core/ui_log.cpp

@@ -21,13 +21,33 @@ int main(int argc, char *argv[]) {
   if (config::g.can_enabled)
     can_bus::init(config::g.can_send_if, config::g.can_recv_if,
                   config::g.can_id);
-  if (config::g.gpio_enabled) gpio_out::init(config::g.gpio_out_pin);
+  if (config::g.gpio_enabled) gpio_out::init(config::g.gpio_out_ch);
   if (config::g.gpio_input_enabled) {
-    gpio_in::init(config::g.gpio_input_pin);
+    gpio_in::init(config::g.gpio_input_ch);
     std::thread([] {
+      /* 高频轮询捕捉对端单脉冲: 连续2次HIGH(去抖)即认定有效 */
+      int high_run = 0;
+      bool latched = false;
+      bool was_paused = false;
+      int poll_us = std::max(100, config::g.gpio_poll_us);
+      SPDLOG_INFO("[GPIO-ctrl] DI{} 轮询线程启动 ({}us)",
+                  config::g.gpio_input_ch + 1, poll_us);
       while (true) {
-        gpio_in::set_paused(gpio_in::read() == 1);
-        usleep(100000);
+        int v = gpio_in::read_fast();
+        high_run = (v == 1) ? high_run + 1 : 0;
+        if (!latched && high_run >= 2) {
+          latched = true;
+          SPDLOG_WARN("[GPIO-ctrl] DI{} 捕捉到脉冲 → 系统暂停",
+                      config::g.gpio_input_ch + 1);
+        }
+        bool paused = config::g.gpio_input_latch
+                          ? latched
+                          : (high_run >= 2);
+        if (paused != was_paused) {
+          gpio_in::set_paused(paused);
+          was_paused = paused;
+        }
+        usleep(poll_us);
       }
     }).detach();
   }

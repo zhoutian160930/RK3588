@@ -1,0 +1,16 @@
+[2026-08-26 16:05:27.306] [info] spdlog initialized, log file: /home/hzx/workspace/boxseer/output/log/20260826_160527.txt
+[2026-08-26 16:05:27.306] [info] ==== yolov8_sam_demo (Qt UI) ====
+[2026-08-26 16:05:27.306] [info] CAN: 发送接口 can0 就绪, can_id=0x300
+[2026-08-26 16:05:27.306] [info] CAN: 接收接口 can1 就绪
+[2026-08-26 16:05:27.307] [warning] CAN: 接收读错误: Network is down
+[2026-08-26 16:05:27.308] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 16:05:27.308] [info] GPIO-out: DO1 (/sys/class/gpio/gpiof_out0/value) 就绪, 初始 HIGH(不满足)
+[2026-08-26 16:05:27.308] [info] GPIO-in: DI1 (/sys/class/gpio/gpiof_in0/value) 就绪, 高频轮询模式
+[2026-08-26 16:05:27.309] [info] [GPIO-ctrl] DI1 轮询线程启动 (500us)
+[2026-08-26 16:05:27.822] [info] camera: 正在发现相机...
+[2026-08-26 16:05:27.994] [error] camera: 未发现相机 (ret=0x0, count=0)
+[2026-08-26 16:05:27.994] [info] image_saver: started (max_queue=16)
+[2026-08-26 16:07:23.925] [info] camera: 已关闭
+[2026-08-26 16:07:23.925] [info] image_saver: shutdown (saved=0, dropped=0, leftover=0)
+[2026-08-26 16:07:23.975] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 16:07:23.975] [info] GPIO-out: DO1 已恢复 HIGH

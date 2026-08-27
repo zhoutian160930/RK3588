@@ -1,0 +1,22 @@
+[2026-08-27 10:06:28.617] [info] spdlog initialized, log file: /home/hzx/workspace/boxseer/output/log/20260827_100628.txt
+[2026-08-27 10:06:28.617] [info] ==== yolov8_sam_demo (Qt UI) ====
+[2026-08-27 10:06:28.617] [info] CAN: 发送接口 can0 就绪, can_id=0x300
+[2026-08-27 10:06:28.617] [info] CAN: 接收接口 can1 就绪
+[2026-08-27 10:06:28.618] [warning] CAN: 接收读错误: Network is down
+[2026-08-27 10:06:28.619] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-27 10:06:28.619] [info] GPIO-out: DO1 (/sys/class/gpio/gpiof_out0/value) 就绪, 初始 HIGH(不满足)
+[2026-08-27 10:06:28.619] [info] GPIO-in: DI1 (/sys/class/gpio/gpiof_in0/value) 就绪, 高频轮询模式
+[2026-08-27 10:06:28.619] [info] [GPIO-ctrl] DI1 轮询线程启动 (500us)
+[2026-08-27 10:06:29.154] [info] camera: 正在发现相机...
+[2026-08-27 10:06:29.330] [info] camera: 发现 MV-CU013-80GC  SN:DB1844426  IP:192.168.1.64
+[2026-08-27 10:06:29.930] [info] camera: 自动曝光
+[2026-08-27 10:06:29.961] [info] camera: 自动增益
+[2026-08-27 10:06:30.015] [info] camera: 分辨率设置 1280x1024 -> 1280x1024 (off=0,0)
+[2026-08-27 10:06:30.066] [info] camera: 就绪 1280x1024 pixelType=0x108000b (via MVS SDK aarch64)
+[2026-08-27 10:06:30.066] [info] image_saver: started (max_queue=16)
+[2026-08-27 10:06:30.542] [info] camera: 自动曝光
+[2026-08-27 10:06:30.545] [info] camera: 自动增益
+[2026-08-27 10:06:36.645] [info] camera: 已关闭
+[2026-08-27 10:06:36.646] [info] image_saver: shutdown (saved=0, dropped=0, leftover=0)
+[2026-08-27 10:06:36.722] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-27 10:06:36.722] [info] GPIO-out: DO1 已恢复 HIGH

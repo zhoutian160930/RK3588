@@ -26,7 +26,6 @@ add_executable(yolov8_sam_demo_qt
     ../core/can_bus.cpp
     ../core/gpio_out.cpp
     ../core/gpio_in.cpp
-    ../core/gpio_utils.cpp
     ../core/camera_capture.cpp
     ../core/image_saver.cpp
 )

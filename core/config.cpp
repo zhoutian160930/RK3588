@@ -87,9 +87,11 @@ static void apply_kv(const std::string &k, const std::string &v) {
   else if (k == "can_recv_if") g.can_recv_if = v;
   else if (k == "can_id") g.can_id = (int)strtol(v.c_str(), nullptr, 0);
   else if (k == "gpio_enabled") g.gpio_enabled = (v == "true" || v == "1");
-  else if (k == "gpio_out_pin") g.gpio_out_pin = std::atoi(v.c_str());
+  else if (k == "gpio_out_ch") g.gpio_out_ch = std::atoi(v.c_str());
   else if (k == "gpio_input_enabled") g.gpio_input_enabled = (v == "true" || v == "1");
-  else if (k == "gpio_input_pin") g.gpio_input_pin = std::atoi(v.c_str());
+  else if (k == "gpio_input_ch") g.gpio_input_ch = std::atoi(v.c_str());
+  else if (k == "gpio_poll_us") g.gpio_poll_us = std::atoi(v.c_str());
+  else if (k == "gpio_input_latch") g.gpio_input_latch = (v == "true" || v == "1");
   else if (k == "camera_enabled") g.camera_enabled = (v == "true" || v == "1");
   else if (k == "camera_iface") g.camera_iface = v;
    else if (k == "camera_ip") g.camera_ip = v;
@@ -146,9 +148,11 @@ static void write_file() {
   out << "  \"can_recv_if\": \"" << g.can_recv_if << "\",\n";
   out << "  \"can_id\": " << g.can_id << ",\n";
   out << "  \"gpio_enabled\": " << (g.gpio_enabled ? "true" : "false") << ",\n";
-  out << "  \"gpio_out_pin\": " << g.gpio_out_pin << ",\n";
+  out << "  \"gpio_out_ch\": " << g.gpio_out_ch << ",\n";
   out << "  \"gpio_input_enabled\": " << (g.gpio_input_enabled ? "true" : "false") << ",\n";
-  out << "  \"gpio_input_pin\": " << g.gpio_input_pin << ",\n";
+  out << "  \"gpio_input_ch\": " << g.gpio_input_ch << ",\n";
+  out << "  \"gpio_poll_us\": " << g.gpio_poll_us << ",\n";
+  out << "  \"gpio_input_latch\": " << (g.gpio_input_latch ? "true" : "false") << ",\n";
   out << "  \"camera_enabled\": " << (g.camera_enabled ? "true" : "false") << ",\n";
   out << "  \"camera_iface\": \"" << g.camera_iface << "\",\n";
    out << "  \"camera_ip\": \"" << g.camera_ip << "\",\n";

@@ -1,0 +1,1343 @@
+[2026-08-26 14:53:43.905] [info] spdlog initialized, log file: /home/hzx/workspace/boxseer/output/log/20260826_145343.txt
+[2026-08-26 14:53:43.905] [info] ==== yolov8_sam_demo (Qt UI) ====
+[2026-08-26 14:53:43.905] [info] CAN: 发送接口 can0 就绪, can_id=0x300
+[2026-08-26 14:53:43.905] [info] CAN: 接收接口 can1 就绪
+[2026-08-26 14:53:43.905] [warning] CAN: 接收读错误: Network is down
+[2026-08-26 14:53:43.906] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:43.906] [info] GPIO-out: DO1 (/sys/class/gpio/gpiof_out0/value) 就绪, 初始 HIGH(不满足)
+[2026-08-26 14:53:43.906] [info] GPIO-in: DI1 (/sys/class/gpio/gpiof_in0/value) 就绪, 高频轮询模式
+[2026-08-26 14:53:43.906] [info] [GPIO-ctrl] DI1 轮询线程启动 (500us)
+[2026-08-26 14:53:44.237] [info] camera: 正在发现相机...
+[2026-08-26 14:53:44.392] [info] camera: 发现 MV-CU013-80GC  SN:DB1844426  IP:192.168.1.64
+[2026-08-26 14:53:44.905] [info] camera: 自动曝光
+[2026-08-26 14:53:44.929] [info] camera: 自动增益
+[2026-08-26 14:53:44.983] [info] camera: 分辨率设置 1280x1024 -> 1280x1024 (off=0,0)
+[2026-08-26 14:53:45.030] [info] camera: 就绪 1280x1024 pixelType=0x108000b (via MVS SDK aarch64)
+[2026-08-26 14:53:45.031] [info] image_saver: started (max_queue=16)
+[2026-08-26 14:53:45.507] [info] camera: 自动曝光
+[2026-08-26 14:53:45.509] [info] camera: 自动增益
+[2026-08-26 14:53:51.837] [info] loading YOLO model: /home/hzx/文档/Yolo模型/藏药/藏药.rknn (threads=3)
+[2026-08-26 14:53:51.875] [info] YOLO model loaded (常驻)
+[2026-08-26 14:53:51.875] [info] save_dir=/home/hzx/workspace/boxseer/output/detImg/20260826_145351 (本次程序运行共用)
+[2026-08-26 14:53:51.875] [info] camera: 开始实时推理
+[2026-08-26 14:53:51.909] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:51.910] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:51.910] [info] frame 0 合格=false
+[2026-08-26 14:53:51.916] [info] frame 0 | no box(cls1) detected | save=
+[2026-08-26 14:53:51.918] [info] frame 0 total cost 39.2 ms
+[2026-08-26 14:53:51.951] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:51.952] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:51.952] [info] frame 1 合格=false
+[2026-08-26 14:53:51.955] [info] frame 1 | no box(cls1) detected | save=
+[2026-08-26 14:53:51.957] [info] frame 1 total cost 37.8 ms
+[2026-08-26 14:53:51.984] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:51.985] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:51.986] [info] frame 2 合格=false
+[2026-08-26 14:53:51.992] [info] frame 2 | no box(cls1) detected | save=
+[2026-08-26 14:53:51.994] [info] frame 2 total cost 35.4 ms
+[2026-08-26 14:53:52.018] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.019] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.019] [info] frame 3 合格=false
+[2026-08-26 14:53:52.023] [info] frame 3 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.025] [info] frame 3 total cost 29.9 ms
+[2026-08-26 14:53:52.049] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.050] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.050] [info] frame 4 合格=false
+[2026-08-26 14:53:52.054] [info] frame 4 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.056] [info] frame 4 total cost 29.9 ms
+[2026-08-26 14:53:52.082] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.083] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.083] [info] frame 5 合格=false
+[2026-08-26 14:53:52.089] [info] frame 5 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.091] [info] frame 5 total cost 32.9 ms
+[2026-08-26 14:53:52.116] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.117] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.117] [info] frame 6 合格=false
+[2026-08-26 14:53:52.122] [info] frame 6 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.124] [info] frame 6 total cost 31.1 ms
+[2026-08-26 14:53:52.146] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.147] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.147] [info] frame 7 合格=false
+[2026-08-26 14:53:52.154] [info] frame 7 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.156] [info] frame 7 total cost 30.6 ms
+[2026-08-26 14:53:52.183] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.184] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.184] [info] frame 8 合格=false
+[2026-08-26 14:53:52.188] [info] frame 8 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.190] [info] frame 8 total cost 32.2 ms
+[2026-08-26 14:53:52.217] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.218] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.218] [info] frame 9 合格=false
+[2026-08-26 14:53:52.226] [info] frame 9 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.228] [info] frame 9 total cost 36.2 ms
+[2026-08-26 14:53:52.253] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.255] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.255] [info] frame 10 合格=false
+[2026-08-26 14:53:52.262] [info] frame 10 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.264] [info] frame 10 total cost 33.5 ms
+[2026-08-26 14:53:52.291] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.292] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.292] [info] frame 11 合格=false
+[2026-08-26 14:53:52.299] [info] frame 11 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.301] [info] frame 11 total cost 35.2 ms
+[2026-08-26 14:53:52.327] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.328] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.328] [info] frame 12 合格=false
+[2026-08-26 14:53:52.332] [info] frame 12 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.334] [info] frame 12 total cost 29.7 ms
+[2026-08-26 14:53:52.358] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.359] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.359] [info] frame 13 合格=false
+[2026-08-26 14:53:52.363] [info] frame 13 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.365] [info] frame 13 total cost 29.6 ms
+[2026-08-26 14:53:52.388] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.389] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.389] [info] frame 14 合格=false
+[2026-08-26 14:53:52.402] [info] frame 14 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.404] [info] frame 14 total cost 37.2 ms
+[2026-08-26 14:53:52.427] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.428] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.428] [info] frame 15 合格=false
+[2026-08-26 14:53:52.432] [info] frame 15 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.434] [info] frame 15 total cost 29.3 ms
+[2026-08-26 14:53:52.461] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.462] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.462] [info] frame 16 合格=false
+[2026-08-26 14:53:52.466] [info] frame 16 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.469] [info] frame 16 total cost 32.2 ms
+[2026-08-26 14:53:52.492] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.494] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.494] [info] frame 17 合格=false
+[2026-08-26 14:53:52.501] [info] frame 17 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.503] [info] frame 17 total cost 32.9 ms
+[2026-08-26 14:53:52.528] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.529] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.529] [info] frame 18 合格=false
+[2026-08-26 14:53:52.533] [info] frame 18 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.535] [info] frame 18 total cost 30.0 ms
+[2026-08-26 14:53:52.560] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.562] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.562] [info] frame 19 合格=false
+[2026-08-26 14:53:52.566] [info] frame 19 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.568] [info] frame 19 total cost 31.7 ms
+[2026-08-26 14:53:52.594] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.595] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.595] [info] frame 20 合格=false
+[2026-08-26 14:53:52.599] [info] frame 20 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.601] [info] frame 20 total cost 31.2 ms
+[2026-08-26 14:53:52.626] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.627] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.627] [info] frame 21 合格=false
+[2026-08-26 14:53:52.631] [info] frame 21 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.633] [info] frame 21 total cost 29.4 ms
+[2026-08-26 14:53:52.656] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.656] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.656] [info] frame 22 合格=false
+[2026-08-26 14:53:52.660] [info] frame 22 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.663] [info] frame 22 total cost 28.1 ms
+[2026-08-26 14:53:52.687] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.688] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.688] [info] frame 23 合格=false
+[2026-08-26 14:53:52.692] [info] frame 23 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.694] [info] frame 23 total cost 29.7 ms
+[2026-08-26 14:53:52.724] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.725] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.725] [info] frame 24 合格=false
+[2026-08-26 14:53:52.729] [info] frame 24 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.731] [info] frame 24 total cost 35.7 ms
+[2026-08-26 14:53:52.761] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.762] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.762] [info] frame 25 合格=false
+[2026-08-26 14:53:52.766] [info] frame 25 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.768] [info] frame 25 total cost 34.3 ms
+[2026-08-26 14:53:52.797] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.798] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.798] [info] frame 26 合格=false
+[2026-08-26 14:53:52.802] [info] frame 26 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.804] [info] frame 26 total cost 33.9 ms
+[2026-08-26 14:53:52.831] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.832] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.832] [info] frame 27 合格=false
+[2026-08-26 14:53:52.836] [info] frame 27 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.839] [info] frame 27 total cost 32.2 ms
+[2026-08-26 14:53:52.863] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.864] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.864] [info] frame 28 合格=false
+[2026-08-26 14:53:52.868] [info] frame 28 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.870] [info] frame 28 total cost 29.5 ms
+[2026-08-26 14:53:52.896] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.898] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.898] [info] frame 29 合格=false
+[2026-08-26 14:53:52.902] [info] frame 29 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.904] [info] frame 29 total cost 32.1 ms
+[2026-08-26 14:53:52.929] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.931] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.931] [info] frame 30 合格=false
+[2026-08-26 14:53:52.935] [info] frame 30 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.937] [info] frame 30 total cost 30.4 ms
+[2026-08-26 14:53:52.963] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.965] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.965] [info] frame 31 合格=false
+[2026-08-26 14:53:52.969] [info] frame 31 | no box(cls1) detected | save=
+[2026-08-26 14:53:52.972] [info] frame 31 total cost 31.8 ms
+[2026-08-26 14:53:52.995] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:52.996] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:52.996] [info] frame 32 合格=false
+[2026-08-26 14:53:53.000] [info] frame 32 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.002] [info] frame 32 total cost 29.2 ms
+[2026-08-26 14:53:53.025] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.026] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.026] [info] frame 33 合格=false
+[2026-08-26 14:53:53.030] [info] frame 33 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.032] [info] frame 33 total cost 27.9 ms
+[2026-08-26 14:53:53.056] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.057] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.057] [info] frame 34 合格=false
+[2026-08-26 14:53:53.061] [info] frame 34 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.063] [info] frame 34 total cost 29.5 ms
+[2026-08-26 14:53:53.090] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.092] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.092] [info] frame 35 合格=false
+[2026-08-26 14:53:53.100] [info] frame 35 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.102] [info] frame 35 total cost 36.9 ms
+[2026-08-26 14:53:53.125] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.126] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.126] [info] frame 36 合格=false
+[2026-08-26 14:53:53.133] [info] frame 36 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.135] [info] frame 36 total cost 31.2 ms
+[2026-08-26 14:53:53.159] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.160] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.160] [info] frame 37 合格=false
+[2026-08-26 14:53:53.164] [info] frame 37 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.166] [info] frame 37 total cost 29.8 ms
+[2026-08-26 14:53:53.191] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.192] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.192] [info] frame 38 合格=false
+[2026-08-26 14:53:53.199] [info] frame 38 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.201] [info] frame 38 total cost 32.4 ms
+[2026-08-26 14:53:53.226] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.227] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.227] [info] frame 39 合格=false
+[2026-08-26 14:53:53.234] [info] frame 39 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.236] [info] frame 39 total cost 33.3 ms
+[2026-08-26 14:53:53.260] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.261] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.261] [info] frame 40 合格=false
+[2026-08-26 14:53:53.268] [info] frame 40 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.271] [info] frame 40 total cost 32.7 ms
+[2026-08-26 14:53:53.295] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.296] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.296] [info] frame 41 合格=false
+[2026-08-26 14:53:53.304] [info] frame 41 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.306] [info] frame 41 total cost 33.2 ms
+[2026-08-26 14:53:53.329] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.330] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.330] [info] frame 42 合格=false
+[2026-08-26 14:53:53.337] [info] frame 42 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.339] [info] frame 42 total cost 30.9 ms
+[2026-08-26 14:53:53.361] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.362] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.362] [info] frame 43 合格=false
+[2026-08-26 14:53:53.369] [info] frame 43 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.371] [info] frame 43 total cost 31.3 ms
+[2026-08-26 14:53:53.397] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.398] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.398] [info] frame 44 合格=false
+[2026-08-26 14:53:53.402] [info] frame 44 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.404] [info] frame 44 total cost 31.0 ms
+[2026-08-26 14:53:53.430] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.432] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.432] [info] frame 45 合格=false
+[2026-08-26 14:53:53.436] [info] frame 45 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.439] [info] frame 45 total cost 32.3 ms
+[2026-08-26 14:53:53.463] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.464] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.464] [info] frame 46 合格=false
+[2026-08-26 14:53:53.471] [info] frame 46 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.473] [info] frame 46 total cost 33.1 ms
+[2026-08-26 14:53:53.498] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.498] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.499] [info] frame 47 合格=false
+[2026-08-26 14:53:53.506] [info] frame 47 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.508] [info] frame 47 total cost 32.8 ms
+[2026-08-26 14:53:53.532] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.533] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.533] [info] frame 48 合格=false
+[2026-08-26 14:53:53.537] [info] frame 48 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.539] [info] frame 48 total cost 30.2 ms
+[2026-08-26 14:53:53.563] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.564] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.564] [info] frame 49 合格=false
+[2026-08-26 14:53:53.571] [info] frame 49 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.573] [info] frame 49 total cost 31.6 ms
+[2026-08-26 14:53:53.599] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.599] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.599] [info] frame 50 合格=false
+[2026-08-26 14:53:53.603] [info] frame 50 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.605] [info] frame 50 total cost 29.8 ms
+[2026-08-26 14:53:53.630] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.631] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.631] [info] frame 51 合格=false
+[2026-08-26 14:53:53.638] [info] frame 51 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.641] [info] frame 51 total cost 34.4 ms
+[2026-08-26 14:53:53.665] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.666] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.666] [info] frame 52 合格=false
+[2026-08-26 14:53:53.669] [info] frame 52 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.671] [info] frame 52 total cost 29.2 ms
+[2026-08-26 14:53:53.698] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.699] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.699] [info] frame 53 合格=false
+[2026-08-26 14:53:53.703] [info] frame 53 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.705] [info] frame 53 total cost 31.7 ms
+[2026-08-26 14:53:53.730] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.731] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.731] [info] frame 54 合格=false
+[2026-08-26 14:53:53.735] [info] frame 54 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.737] [info] frame 54 total cost 30.6 ms
+[2026-08-26 14:53:53.765] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.766] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.766] [info] frame 55 合格=false
+[2026-08-26 14:53:53.774] [info] frame 55 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.776] [info] frame 55 total cost 36.5 ms
+[2026-08-26 14:53:53.799] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.800] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.800] [info] frame 56 合格=false
+[2026-08-26 14:53:53.807] [info] frame 56 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.809] [info] frame 56 total cost 31.3 ms
+[2026-08-26 14:53:53.835] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.836] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.836] [info] frame 57 合格=false
+[2026-08-26 14:53:53.840] [info] frame 57 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.842] [info] frame 57 total cost 31.9 ms
+[2026-08-26 14:53:53.870] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.871] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.871] [info] frame 58 合格=false
+[2026-08-26 14:53:53.875] [info] frame 58 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.877] [info] frame 58 total cost 32.0 ms
+[2026-08-26 14:53:53.904] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.906] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.906] [info] frame 59 合格=false
+[2026-08-26 14:53:53.910] [info] frame 59 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.913] [info] frame 59 total cost 33.8 ms
+[2026-08-26 14:53:53.940] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.942] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.942] [info] frame 60 合格=false
+[2026-08-26 14:53:53.946] [info] frame 60 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.948] [info] frame 60 total cost 33.0 ms
+[2026-08-26 14:53:53.973] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:53.974] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:53.974] [info] frame 61 合格=false
+[2026-08-26 14:53:53.978] [info] frame 61 | no box(cls1) detected | save=
+[2026-08-26 14:53:53.980] [info] frame 61 total cost 29.7 ms
+[2026-08-26 14:53:54.003] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.004] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.004] [info] frame 62 合格=false
+[2026-08-26 14:53:54.011] [info] frame 62 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.013] [info] frame 62 total cost 31.3 ms
+[2026-08-26 14:53:54.036] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.037] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.037] [info] frame 63 合格=false
+[2026-08-26 14:53:54.041] [info] frame 63 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.043] [info] frame 63 total cost 28.9 ms
+[2026-08-26 14:53:54.071] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.072] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.072] [info] frame 64 合格=false
+[2026-08-26 14:53:54.079] [info] frame 64 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.081] [info] frame 64 total cost 35.6 ms
+[2026-08-26 14:53:54.108] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.109] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.109] [info] frame 65 合格=false
+[2026-08-26 14:53:54.116] [info] frame 65 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.118] [info] frame 65 total cost 35.2 ms
+[2026-08-26 14:53:54.143] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.144] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.144] [info] frame 66 合格=false
+[2026-08-26 14:53:54.148] [info] frame 66 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.150] [info] frame 66 total cost 31.0 ms
+[2026-08-26 14:53:54.176] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.177] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.177] [info] frame 67 合格=false
+[2026-08-26 14:53:54.180] [info] frame 67 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.182] [info] frame 67 total cost 30.2 ms
+[2026-08-26 14:53:54.207] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.208] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.208] [info] frame 68 合格=false
+[2026-08-26 14:53:54.214] [info] frame 68 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.216] [info] frame 68 total cost 31.8 ms
+[2026-08-26 14:53:54.242] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.243] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.243] [info] frame 69 合格=false
+[2026-08-26 14:53:54.246] [info] frame 69 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.248] [info] frame 69 total cost 28.2 ms
+[2026-08-26 14:53:54.273] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.274] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.274] [info] frame 70 合格=false
+[2026-08-26 14:53:54.278] [info] frame 70 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.280] [info] frame 70 total cost 30.3 ms
+[2026-08-26 14:53:54.308] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.309] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.309] [info] frame 71 合格=false
+[2026-08-26 14:53:54.316] [info] frame 71 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.318] [info] frame 71 total cost 35.4 ms
+[2026-08-26 14:53:54.340] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.341] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.341] [info] frame 72 合格=false
+[2026-08-26 14:53:54.351] [info] frame 72 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.353] [info] frame 72 total cost 33.9 ms
+[2026-08-26 14:53:54.377] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.378] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.378] [info] frame 73 合格=false
+[2026-08-26 14:53:54.384] [info] frame 73 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.387] [info] frame 73 total cost 31.1 ms
+[2026-08-26 14:53:54.410] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.411] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.411] [info] frame 74 合格=false
+[2026-08-26 14:53:54.417] [info] frame 74 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.419] [info] frame 74 total cost 31.3 ms
+[2026-08-26 14:53:54.444] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.444] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.444] [info] frame 75 合格=false
+[2026-08-26 14:53:54.451] [info] frame 75 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.453] [info] frame 75 total cost 32.2 ms
+[2026-08-26 14:53:54.478] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.479] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.479] [info] frame 76 合格=false
+[2026-08-26 14:53:54.486] [info] frame 76 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.488] [info] frame 76 total cost 33.1 ms
+[2026-08-26 14:53:54.513] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.514] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.514] [info] frame 77 合格=false
+[2026-08-26 14:53:54.521] [info] frame 77 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.523] [info] frame 77 total cost 32.6 ms
+[2026-08-26 14:53:54.554] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.555] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.555] [info] frame 78 合格=false
+[2026-08-26 14:53:54.563] [info] frame 78 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.565] [info] frame 78 total cost 39.3 ms
+[2026-08-26 14:53:54.593] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.594] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.595] [info] frame 79 合格=false
+[2026-08-26 14:53:54.602] [info] frame 79 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.604] [info] frame 79 total cost 37.5 ms
+[2026-08-26 14:53:54.631] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.633] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.633] [info] frame 80 合格=false
+[2026-08-26 14:53:54.637] [info] frame 80 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.639] [info] frame 80 total cost 32.4 ms
+[2026-08-26 14:53:54.663] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.665] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.665] [info] frame 81 合格=false
+[2026-08-26 14:53:54.672] [info] frame 81 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.674] [info] frame 81 total cost 33.2 ms
+[2026-08-26 14:53:54.699] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.700] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.700] [info] frame 82 合格=false
+[2026-08-26 14:53:54.704] [info] frame 82 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.706] [info] frame 82 total cost 30.4 ms
+[2026-08-26 14:53:54.732] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.733] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.733] [info] frame 83 合格=false
+[2026-08-26 14:53:54.737] [info] frame 83 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.739] [info] frame 83 total cost 30.5 ms
+[2026-08-26 14:53:54.764] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.765] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.765] [info] frame 84 合格=false
+[2026-08-26 14:53:54.772] [info] frame 84 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.774] [info] frame 84 total cost 33.0 ms
+[2026-08-26 14:53:54.796] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.797] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.797] [info] frame 85 合格=false
+[2026-08-26 14:53:54.804] [info] frame 85 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.807] [info] frame 85 total cost 30.8 ms
+[2026-08-26 14:53:54.831] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.832] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.832] [info] frame 86 合格=false
+[2026-08-26 14:53:54.839] [info] frame 86 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.841] [info] frame 86 total cost 33.2 ms
+[2026-08-26 14:53:54.865] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.867] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.867] [info] frame 87 合格=false
+[2026-08-26 14:53:54.870] [info] frame 87 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.873] [info] frame 87 total cost 29.5 ms
+[2026-08-26 14:53:54.897] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.898] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.898] [info] frame 88 合格=false
+[2026-08-26 14:53:54.905] [info] frame 88 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.907] [info] frame 88 total cost 33.3 ms
+[2026-08-26 14:53:54.932] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.933] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.933] [info] frame 89 合格=false
+[2026-08-26 14:53:54.937] [info] frame 89 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.939] [info] frame 89 total cost 30.2 ms
+[2026-08-26 14:53:54.964] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:54.965] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:54.965] [info] frame 90 合格=false
+[2026-08-26 14:53:54.972] [info] frame 90 | no box(cls1) detected | save=
+[2026-08-26 14:53:54.974] [info] frame 90 total cost 33.3 ms
+[2026-08-26 14:53:54.999] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.000] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.000] [info] frame 91 合格=false
+[2026-08-26 14:53:55.007] [info] frame 91 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.009] [info] frame 91 total cost 33.4 ms
+[2026-08-26 14:53:55.034] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.035] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.035] [info] frame 92 合格=false
+[2026-08-26 14:53:55.042] [info] frame 92 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.044] [info] frame 92 total cost 33.5 ms
+[2026-08-26 14:53:55.068] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.069] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.069] [info] frame 93 合格=false
+[2026-08-26 14:53:55.076] [info] frame 93 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.078] [info] frame 93 total cost 32.6 ms
+[2026-08-26 14:53:55.100] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.101] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.101] [info] frame 94 合格=false
+[2026-08-26 14:53:55.105] [info] frame 94 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.107] [info] frame 94 total cost 27.6 ms
+[2026-08-26 14:53:55.130] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.131] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.131] [info] frame 95 合格=false
+[2026-08-26 14:53:55.135] [info] frame 95 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.137] [info] frame 95 total cost 27.8 ms
+[2026-08-26 14:53:55.160] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.160] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.160] [info] frame 96 合格=false
+[2026-08-26 14:53:55.167] [info] frame 96 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.170] [info] frame 96 total cost 30.8 ms
+[2026-08-26 14:53:55.192] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.193] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.193] [info] frame 97 合格=false
+[2026-08-26 14:53:55.200] [info] frame 97 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.202] [info] frame 97 total cost 30.6 ms
+[2026-08-26 14:53:55.226] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.228] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.228] [info] frame 98 合格=false
+[2026-08-26 14:53:55.235] [info] frame 98 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.237] [info] frame 98 total cost 33.4 ms
+[2026-08-26 14:53:55.261] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.263] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.263] [info] frame 99 合格=false
+[2026-08-26 14:53:55.267] [info] frame 99 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.269] [info] frame 99 total cost 30.6 ms
+[2026-08-26 14:53:55.292] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.293] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.293] [info] frame 100 合格=false
+[2026-08-26 14:53:55.296] [info] frame 100 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.299] [info] frame 100 total cost 27.6 ms
+[2026-08-26 14:53:55.323] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.325] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.325] [info] frame 101 合格=false
+[2026-08-26 14:53:55.328] [info] frame 101 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.330] [info] frame 101 total cost 30.2 ms
+[2026-08-26 14:53:55.352] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.353] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.353] [info] frame 102 合格=false
+[2026-08-26 14:53:55.357] [info] frame 102 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.359] [info] frame 102 total cost 26.9 ms
+[2026-08-26 14:53:55.387] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.388] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.388] [info] frame 103 合格=false
+[2026-08-26 14:53:55.408] [info] frame 103 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.410] [info] frame 103 total cost 49.2 ms
+[2026-08-26 14:53:55.437] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.438] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.438] [info] frame 104 合格=false
+[2026-08-26 14:53:55.442] [info] frame 104 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.444] [info] frame 104 total cost 32.6 ms
+[2026-08-26 14:53:55.470] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.470] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.470] [info] frame 105 合格=false
+[2026-08-26 14:53:55.477] [info] frame 105 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.479] [info] frame 105 total cost 33.1 ms
+[2026-08-26 14:53:55.507] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.508] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.508] [info] frame 106 合格=false
+[2026-08-26 14:53:55.515] [info] frame 106 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.517] [info] frame 106 total cost 35.7 ms
+[2026-08-26 14:53:55.545] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.545] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.545] [info] frame 107 合格=false
+[2026-08-26 14:53:55.553] [info] frame 107 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.555] [info] frame 107 total cost 35.3 ms
+[2026-08-26 14:53:55.583] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.584] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.584] [info] frame 108 合格=false
+[2026-08-26 14:53:55.592] [info] frame 108 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.594] [info] frame 108 total cost 35.9 ms
+[2026-08-26 14:53:55.621] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.622] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.623] [info] frame 109 合格=false
+[2026-08-26 14:53:55.626] [info] frame 109 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.629] [info] frame 109 total cost 32.8 ms
+[2026-08-26 14:53:55.657] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.658] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.658] [info] frame 110 合格=false
+[2026-08-26 14:53:55.662] [info] frame 110 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.664] [info] frame 110 total cost 33.6 ms
+[2026-08-26 14:53:55.691] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.693] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.693] [info] frame 111 合格=false
+[2026-08-26 14:53:55.710] [info] frame 111 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.712] [info] frame 111 total cost 45.7 ms
+[2026-08-26 14:53:55.737] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.738] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.738] [info] frame 112 合格=false
+[2026-08-26 14:53:55.742] [info] frame 112 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.744] [info] frame 112 total cost 30.1 ms
+[2026-08-26 14:53:55.769] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.769] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.769] [info] frame 113 合格=false
+[2026-08-26 14:53:55.773] [info] frame 113 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.776] [info] frame 113 total cost 29.7 ms
+[2026-08-26 14:53:55.799] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.800] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.800] [info] frame 114 合格=false
+[2026-08-26 14:53:55.803] [info] frame 114 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.805] [info] frame 114 total cost 28.2 ms
+[2026-08-26 14:53:55.828] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.829] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.829] [info] frame 115 合格=false
+[2026-08-26 14:53:55.832] [info] frame 115 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.835] [info] frame 115 total cost 28.0 ms
+[2026-08-26 14:53:55.857] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.857] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.858] [info] frame 116 合格=false
+[2026-08-26 14:53:55.864] [info] frame 116 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.866] [info] frame 116 total cost 30.4 ms
+[2026-08-26 14:53:55.893] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.893] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.893] [info] frame 117 合格=false
+[2026-08-26 14:53:55.898] [info] frame 117 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.900] [info] frame 117 total cost 32.0 ms
+[2026-08-26 14:53:55.926] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.927] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.927] [info] frame 118 合格=false
+[2026-08-26 14:53:55.934] [info] frame 118 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.937] [info] frame 118 total cost 34.1 ms
+[2026-08-26 14:53:55.959] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.960] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.960] [info] frame 119 合格=false
+[2026-08-26 14:53:55.964] [info] frame 119 | no box(cls1) detected | save=
+[2026-08-26 14:53:55.966] [info] frame 119 total cost 27.2 ms
+[2026-08-26 14:53:55.991] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:55.991] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:55.991] [info] frame 120 合格=false
+[2026-08-26 14:53:56.008] [info] frame 120 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.010] [info] frame 120 total cost 42.6 ms
+[2026-08-26 14:53:56.034] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.035] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.035] [info] frame 121 合格=false
+[2026-08-26 14:53:56.038] [info] frame 121 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.040] [info] frame 121 total cost 28.4 ms
+[2026-08-26 14:53:56.062] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.063] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.063] [info] frame 122 合格=false
+[2026-08-26 14:53:56.066] [info] frame 122 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.068] [info] frame 122 total cost 26.6 ms
+[2026-08-26 14:53:56.093] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.094] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.094] [info] frame 123 合格=false
+[2026-08-26 14:53:56.101] [info] frame 123 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.103] [info] frame 123 total cost 33.7 ms
+[2026-08-26 14:53:56.124] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.125] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.125] [info] frame 124 合格=false
+[2026-08-26 14:53:56.132] [info] frame 124 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.134] [info] frame 124 total cost 29.2 ms
+[2026-08-26 14:53:56.155] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.156] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.156] [info] frame 125 合格=false
+[2026-08-26 14:53:56.166] [info] frame 125 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.168] [info] frame 125 total cost 32.1 ms
+[2026-08-26 14:53:56.192] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.193] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.193] [info] frame 126 合格=false
+[2026-08-26 14:53:56.196] [info] frame 126 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.198] [info] frame 126 total cost 28.6 ms
+[2026-08-26 14:53:56.223] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.224] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.224] [info] frame 127 合格=false
+[2026-08-26 14:53:56.231] [info] frame 127 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.233] [info] frame 127 total cost 32.2 ms
+[2026-08-26 14:53:56.257] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.258] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.258] [info] frame 128 合格=false
+[2026-08-26 14:53:56.261] [info] frame 128 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.263] [info] frame 128 total cost 28.1 ms
+[2026-08-26 14:53:56.287] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.288] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.288] [info] frame 129 合格=false
+[2026-08-26 14:53:56.291] [info] frame 129 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.294] [info] frame 129 total cost 28.0 ms
+[2026-08-26 14:53:56.319] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.320] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.320] [info] frame 130 合格=false
+[2026-08-26 14:53:56.324] [info] frame 130 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.326] [info] frame 130 total cost 29.9 ms
+[2026-08-26 14:53:56.350] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.351] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.351] [info] frame 131 合格=false
+[2026-08-26 14:53:56.354] [info] frame 131 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.356] [info] frame 131 total cost 28.5 ms
+[2026-08-26 14:53:56.381] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.382] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.382] [info] frame 132 合格=false
+[2026-08-26 14:53:56.390] [info] frame 132 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.392] [info] frame 132 total cost 33.4 ms
+[2026-08-26 14:53:56.417] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.418] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.418] [info] frame 133 合格=false
+[2026-08-26 14:53:56.425] [info] frame 133 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.427] [info] frame 133 total cost 33.5 ms
+[2026-08-26 14:53:56.451] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.452] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.452] [info] frame 134 合格=false
+[2026-08-26 14:53:56.459] [info] frame 134 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.461] [info] frame 134 total cost 31.3 ms
+[2026-08-26 14:53:56.486] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.487] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.487] [info] frame 135 合格=false
+[2026-08-26 14:53:56.491] [info] frame 135 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.493] [info] frame 135 total cost 29.7 ms
+[2026-08-26 14:53:56.520] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.521] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.521] [info] frame 136 合格=false
+[2026-08-26 14:53:56.525] [info] frame 136 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.527] [info] frame 136 total cost 31.9 ms
+[2026-08-26 14:53:56.552] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.553] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.553] [info] frame 137 合格=false
+[2026-08-26 14:53:56.557] [info] frame 137 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.559] [info] frame 137 total cost 29.9 ms
+[2026-08-26 14:53:56.585] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.586] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.586] [info] frame 138 合格=false
+[2026-08-26 14:53:56.591] [info] frame 138 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.593] [info] frame 138 total cost 32.1 ms
+[2026-08-26 14:53:56.618] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.619] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.619] [info] frame 139 合格=false
+[2026-08-26 14:53:56.626] [info] frame 139 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.628] [info] frame 139 total cost 33.0 ms
+[2026-08-26 14:53:56.652] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.653] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.653] [info] frame 140 合格=false
+[2026-08-26 14:53:56.656] [info] frame 140 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.659] [info] frame 140 total cost 28.5 ms
+[2026-08-26 14:53:56.680] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.681] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.681] [info] frame 141 合格=false
+[2026-08-26 14:53:56.688] [info] frame 141 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.691] [info] frame 141 total cost 30.8 ms
+[2026-08-26 14:53:56.716] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.716] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.717] [info] frame 142 合格=false
+[2026-08-26 14:53:56.721] [info] frame 142 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.723] [info] frame 142 total cost 30.5 ms
+[2026-08-26 14:53:56.746] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.747] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.747] [info] frame 143 合格=false
+[2026-08-26 14:53:56.760] [info] frame 143 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.762] [info] frame 143 total cost 37.9 ms
+[2026-08-26 14:53:56.787] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.787] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.787] [info] frame 144 合格=false
+[2026-08-26 14:53:56.791] [info] frame 144 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.793] [info] frame 144 total cost 28.9 ms
+[2026-08-26 14:53:56.818] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.819] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.819] [info] frame 145 合格=false
+[2026-08-26 14:53:56.823] [info] frame 145 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.825] [info] frame 145 total cost 29.9 ms
+[2026-08-26 14:53:56.845] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.846] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.846] [info] frame 146 合格=false
+[2026-08-26 14:53:56.853] [info] frame 146 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.855] [info] frame 146 total cost 29.0 ms
+[2026-08-26 14:53:56.880] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.881] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.881] [info] frame 147 合格=false
+[2026-08-26 14:53:56.885] [info] frame 147 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.887] [info] frame 147 total cost 30.3 ms
+[2026-08-26 14:53:56.911] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.912] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.912] [info] frame 148 合格=false
+[2026-08-26 14:53:56.925] [info] frame 148 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.927] [info] frame 148 total cost 38.8 ms
+[2026-08-26 14:53:56.950] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.951] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.951] [info] frame 149 合格=false
+[2026-08-26 14:53:56.955] [info] frame 149 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.957] [info] frame 149 total cost 28.1 ms
+[2026-08-26 14:53:56.982] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:56.982] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:56.982] [info] frame 150 合格=false
+[2026-08-26 14:53:56.986] [info] frame 150 | no box(cls1) detected | save=
+[2026-08-26 14:53:56.988] [info] frame 150 total cost 29.9 ms
+[2026-08-26 14:53:57.012] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.013] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.014] [info] frame 151 合格=false
+[2026-08-26 14:53:57.018] [info] frame 151 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.020] [info] frame 151 total cost 29.7 ms
+[2026-08-26 14:53:57.044] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.045] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.045] [info] frame 152 合格=false
+[2026-08-26 14:53:57.067] [info] frame 152 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.069] [info] frame 152 total cost 47.9 ms
+[2026-08-26 14:53:57.092] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.093] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.093] [info] frame 153 合格=false
+[2026-08-26 14:53:57.097] [info] frame 153 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.099] [info] frame 153 total cost 28.0 ms
+[2026-08-26 14:53:57.120] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.120] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.120] [info] frame 154 合格=false
+[2026-08-26 14:53:57.127] [info] frame 154 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.129] [info] frame 154 total cost 28.7 ms
+[2026-08-26 14:53:57.150] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.151] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.151] [info] frame 155 合格=false
+[2026-08-26 14:53:57.154] [info] frame 155 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.156] [info] frame 155 total cost 25.8 ms
+[2026-08-26 14:53:57.179] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.180] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.180] [info] frame 156 合格=false
+[2026-08-26 14:53:57.184] [info] frame 156 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.186] [info] frame 156 total cost 27.8 ms
+[2026-08-26 14:53:57.211] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.212] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.212] [info] frame 157 合格=false
+[2026-08-26 14:53:57.219] [info] frame 157 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.221] [info] frame 157 total cost 33.9 ms
+[2026-08-26 14:53:57.243] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.244] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.244] [info] frame 158 合格=false
+[2026-08-26 14:53:57.247] [info] frame 158 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.249] [info] frame 158 total cost 26.8 ms
+[2026-08-26 14:53:57.273] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.274] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.274] [info] frame 159 合格=false
+[2026-08-26 14:53:57.278] [info] frame 159 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.280] [info] frame 159 total cost 29.1 ms
+[2026-08-26 14:53:57.304] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.305] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.305] [info] frame 160 合格=false
+[2026-08-26 14:53:57.312] [info] frame 160 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.314] [info] frame 160 total cost 32.9 ms
+[2026-08-26 14:53:57.337] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.338] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.338] [info] frame 161 合格=false
+[2026-08-26 14:53:57.342] [info] frame 161 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.344] [info] frame 161 total cost 27.9 ms
+[2026-08-26 14:53:57.368] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.369] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.369] [info] frame 162 合格=false
+[2026-08-26 14:53:57.373] [info] frame 162 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.375] [info] frame 162 total cost 29.4 ms
+[2026-08-26 14:53:57.401] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.402] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.402] [info] frame 163 合格=false
+[2026-08-26 14:53:57.406] [info] frame 163 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.408] [info] frame 163 total cost 32.0 ms
+[2026-08-26 14:53:57.432] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.433] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.433] [info] frame 164 合格=false
+[2026-08-26 14:53:57.436] [info] frame 164 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.438] [info] frame 164 total cost 27.8 ms
+[2026-08-26 14:53:57.459] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.460] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.460] [info] frame 165 合格=false
+[2026-08-26 14:53:57.463] [info] frame 165 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.465] [info] frame 165 total cost 25.7 ms
+[2026-08-26 14:53:57.488] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.489] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.489] [info] frame 166 合格=false
+[2026-08-26 14:53:57.514] [info] frame 166 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.516] [info] frame 166 total cost 49.4 ms
+[2026-08-26 14:53:57.541] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.542] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.542] [info] frame 167 合格=false
+[2026-08-26 14:53:57.546] [info] frame 167 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.548] [info] frame 167 total cost 30.6 ms
+[2026-08-26 14:53:57.571] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.573] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.573] [info] frame 168 合格=false
+[2026-08-26 14:53:57.577] [info] frame 168 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.579] [info] frame 168 total cost 28.7 ms
+[2026-08-26 14:53:57.603] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.604] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.604] [info] frame 169 合格=false
+[2026-08-26 14:53:57.611] [info] frame 169 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.613] [info] frame 169 total cost 33.0 ms
+[2026-08-26 14:53:57.638] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.639] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.639] [info] frame 170 合格=false
+[2026-08-26 14:53:57.665] [info] frame 170 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.667] [info] frame 170 total cost 51.6 ms
+[2026-08-26 14:53:57.690] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.691] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.691] [info] frame 171 合格=false
+[2026-08-26 14:53:57.695] [info] frame 171 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.697] [info] frame 171 total cost 28.4 ms
+[2026-08-26 14:53:57.723] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.725] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.725] [info] frame 172 合格=false
+[2026-08-26 14:53:57.733] [info] frame 172 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.735] [info] frame 172 total cost 35.9 ms
+[2026-08-26 14:53:57.761] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.762] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.762] [info] frame 173 合格=false
+[2026-08-26 14:53:57.766] [info] frame 173 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.768] [info] frame 173 total cost 31.6 ms
+[2026-08-26 14:53:57.795] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.796] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.796] [info] frame 174 合格=false
+[2026-08-26 14:53:57.813] [info] frame 174 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.815] [info] frame 174 total cost 45.4 ms
+[2026-08-26 14:53:57.842] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.843] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.843] [info] frame 175 合格=false
+[2026-08-26 14:53:57.847] [info] frame 175 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.850] [info] frame 175 total cost 32.1 ms
+[2026-08-26 14:53:57.875] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.876] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.876] [info] frame 176 合格=false
+[2026-08-26 14:53:57.883] [info] frame 176 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.885] [info] frame 176 total cost 33.3 ms
+[2026-08-26 14:53:57.910] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.910] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.910] [info] frame 177 合格=false
+[2026-08-26 14:53:57.914] [info] frame 177 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.916] [info] frame 177 total cost 29.8 ms
+[2026-08-26 14:53:57.944] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.945] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.945] [info] frame 178 合格=false
+[2026-08-26 14:53:57.964] [info] frame 178 | no box(cls1) detected | save=
+[2026-08-26 14:53:57.966] [info] frame 178 total cost 48.0 ms
+[2026-08-26 14:53:57.991] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:57.993] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:57.993] [info] frame 179 合格=false
+[2026-08-26 14:53:58.000] [info] frame 179 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.002] [info] frame 179 total cost 33.6 ms
+[2026-08-26 14:53:58.029] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.030] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.030] [info] frame 180 合格=false
+[2026-08-26 14:53:58.035] [info] frame 180 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.037] [info] frame 180 total cost 32.7 ms
+[2026-08-26 14:53:58.064] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.065] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.065] [info] frame 181 合格=false
+[2026-08-26 14:53:58.070] [info] frame 181 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.072] [info] frame 181 total cost 32.9 ms
+[2026-08-26 14:53:58.101] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.102] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.102] [info] frame 182 合格=false
+[2026-08-26 14:53:58.106] [info] frame 182 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.108] [info] frame 182 total cost 34.3 ms
+[2026-08-26 14:53:58.131] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.132] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.132] [info] frame 183 合格=false
+[2026-08-26 14:53:58.136] [info] frame 183 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.138] [info] frame 183 total cost 27.8 ms
+[2026-08-26 14:53:58.165] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.166] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.166] [info] frame 184 合格=false
+[2026-08-26 14:53:58.173] [info] frame 184 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.175] [info] frame 184 total cost 35.2 ms
+[2026-08-26 14:53:58.199] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.200] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.200] [info] frame 185 合格=false
+[2026-08-26 14:53:58.207] [info] frame 185 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.209] [info] frame 185 total cost 32.7 ms
+[2026-08-26 14:53:58.234] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.235] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.235] [info] frame 186 合格=false
+[2026-08-26 14:53:58.239] [info] frame 186 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.241] [info] frame 186 total cost 30.5 ms
+[2026-08-26 14:53:58.265] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.266] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.266] [info] frame 187 合格=false
+[2026-08-26 14:53:58.273] [info] frame 187 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.275] [info] frame 187 total cost 32.1 ms
+[2026-08-26 14:53:58.299] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.301] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.301] [info] frame 188 合格=false
+[2026-08-26 14:53:58.305] [info] frame 188 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.307] [info] frame 188 total cost 30.3 ms
+[2026-08-26 14:53:58.332] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.333] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.333] [info] frame 189 合格=false
+[2026-08-26 14:53:58.340] [info] frame 189 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.342] [info] frame 189 total cost 33.3 ms
+[2026-08-26 14:53:58.366] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.367] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.367] [info] frame 190 合格=false
+[2026-08-26 14:53:58.371] [info] frame 190 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.373] [info] frame 190 total cost 30.1 ms
+[2026-08-26 14:53:58.399] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.400] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.400] [info] frame 191 合格=false
+[2026-08-26 14:53:58.407] [info] frame 191 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.410] [info] frame 191 total cost 33.9 ms
+[2026-08-26 14:53:58.436] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.437] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.437] [info] frame 192 合格=false
+[2026-08-26 14:53:58.441] [info] frame 192 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.444] [info] frame 192 total cost 32.0 ms
+[2026-08-26 14:53:58.468] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.469] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.469] [info] frame 193 合格=false
+[2026-08-26 14:53:58.476] [info] frame 193 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.478] [info] frame 193 total cost 31.7 ms
+[2026-08-26 14:53:58.502] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.503] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.503] [info] frame 194 合格=false
+[2026-08-26 14:53:58.510] [info] frame 194 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.512] [info] frame 194 total cost 32.7 ms
+[2026-08-26 14:53:58.540] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.541] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.541] [info] frame 195 合格=false
+[2026-08-26 14:53:58.558] [info] frame 195 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.560] [info] frame 195 total cost 45.8 ms
+[2026-08-26 14:53:58.585] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.586] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.586] [info] frame 196 合格=false
+[2026-08-26 14:53:58.590] [info] frame 196 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.592] [info] frame 196 total cost 30.0 ms
+[2026-08-26 14:53:58.620] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.621] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.621] [info] frame 197 合格=false
+[2026-08-26 14:53:58.625] [info] frame 197 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.627] [info] frame 197 total cost 32.5 ms
+[2026-08-26 14:53:58.652] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.653] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.653] [info] frame 198 合格=false
+[2026-08-26 14:53:58.660] [info] frame 198 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.662] [info] frame 198 total cost 32.4 ms
+[2026-08-26 14:53:58.686] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.687] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.687] [info] frame 199 合格=false
+[2026-08-26 14:53:58.691] [info] frame 199 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.693] [info] frame 199 total cost 29.7 ms
+[2026-08-26 14:53:58.717] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.718] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.718] [info] frame 200 合格=false
+[2026-08-26 14:53:58.724] [info] frame 200 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.726] [info] frame 200 total cost 31.5 ms
+[2026-08-26 14:53:58.750] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.751] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.751] [info] frame 201 合格=false
+[2026-08-26 14:53:58.755] [info] frame 201 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.757] [info] frame 201 total cost 28.5 ms
+[2026-08-26 14:53:58.781] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.782] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.782] [info] frame 202 合格=false
+[2026-08-26 14:53:58.786] [info] frame 202 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.788] [info] frame 202 total cost 29.8 ms
+[2026-08-26 14:53:58.811] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.812] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.812] [info] frame 203 合格=false
+[2026-08-26 14:53:58.819] [info] frame 203 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.821] [info] frame 203 total cost 31.3 ms
+[2026-08-26 14:53:58.843] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.844] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.844] [info] frame 204 合格=false
+[2026-08-26 14:53:58.866] [info] frame 204 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.868] [info] frame 204 total cost 45.2 ms
+[2026-08-26 14:53:58.892] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.892] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.893] [info] frame 205 合格=false
+[2026-08-26 14:53:58.896] [info] frame 205 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.898] [info] frame 205 total cost 28.8 ms
+[2026-08-26 14:53:58.925] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.926] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.926] [info] frame 206 合格=false
+[2026-08-26 14:53:58.930] [info] frame 206 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.933] [info] frame 206 total cost 32.2 ms
+[2026-08-26 14:53:58.957] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.958] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.958] [info] frame 207 合格=false
+[2026-08-26 14:53:58.965] [info] frame 207 | no box(cls1) detected | save=
+[2026-08-26 14:53:58.968] [info] frame 207 total cost 33.2 ms
+[2026-08-26 14:53:58.993] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:58.994] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:58.994] [info] frame 208 合格=false
+[2026-08-26 14:53:59.007] [info] frame 208 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.009] [info] frame 208 total cost 40.0 ms
+[2026-08-26 14:53:59.037] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.038] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.038] [info] frame 209 合格=false
+[2026-08-26 14:53:59.042] [info] frame 209 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.045] [info] frame 209 total cost 32.4 ms
+[2026-08-26 14:53:59.068] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.069] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.069] [info] frame 210 合格=false
+[2026-08-26 14:53:59.073] [info] frame 210 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.075] [info] frame 210 total cost 28.5 ms
+[2026-08-26 14:53:59.100] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.101] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.101] [info] frame 211 合格=false
+[2026-08-26 14:53:59.105] [info] frame 211 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.107] [info] frame 211 total cost 30.2 ms
+[2026-08-26 14:53:59.132] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.134] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.134] [info] frame 212 合格=false
+[2026-08-26 14:53:59.138] [info] frame 212 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.140] [info] frame 212 total cost 30.6 ms
+[2026-08-26 14:53:59.164] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.166] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.166] [info] frame 213 合格=false
+[2026-08-26 14:53:59.179] [info] frame 213 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.181] [info] frame 213 total cost 39.5 ms
+[2026-08-26 14:53:59.205] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.206] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.206] [info] frame 214 合格=false
+[2026-08-26 14:53:59.209] [info] frame 214 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.212] [info] frame 214 total cost 27.9 ms
+[2026-08-26 14:53:59.236] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.237] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.237] [info] frame 215 合格=false
+[2026-08-26 14:53:59.244] [info] frame 215 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.246] [info] frame 215 total cost 32.8 ms
+[2026-08-26 14:53:59.269] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.270] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.270] [info] frame 216 合格=false
+[2026-08-26 14:53:59.274] [info] frame 216 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.276] [info] frame 216 total cost 28.3 ms
+[2026-08-26 14:53:59.299] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.300] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.300] [info] frame 217 合格=false
+[2026-08-26 14:53:59.309] [info] frame 217 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.311] [info] frame 217 total cost 33.9 ms
+[2026-08-26 14:53:59.334] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.335] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.335] [info] frame 218 合格=false
+[2026-08-26 14:53:59.342] [info] frame 218 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.344] [info] frame 218 total cost 31.2 ms
+[2026-08-26 14:53:59.368] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.368] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.368] [info] frame 219 合格=false
+[2026-08-26 14:53:59.375] [info] frame 219 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.377] [info] frame 219 total cost 31.9 ms
+[2026-08-26 14:53:59.405] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.406] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.406] [info] frame 220 合格=false
+[2026-08-26 14:53:59.410] [info] frame 220 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.412] [info] frame 220 total cost 32.1 ms
+[2026-08-26 14:53:59.439] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.440] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.440] [info] frame 221 合格=false
+[2026-08-26 14:53:59.468] [info] frame 221 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.470] [info] frame 221 total cost 56.7 ms
+[2026-08-26 14:53:59.499] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.500] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.500] [info] frame 222 合格=false
+[2026-08-26 14:53:59.508] [info] frame 222 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.510] [info] frame 222 total cost 37.3 ms
+[2026-08-26 14:53:59.539] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.540] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.540] [info] frame 223 合格=false
+[2026-08-26 14:53:59.544] [info] frame 223 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.546] [info] frame 223 total cost 34.2 ms
+[2026-08-26 14:53:59.574] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.575] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.575] [info] frame 224 合格=false
+[2026-08-26 14:53:59.579] [info] frame 224 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.581] [info] frame 224 total cost 32.1 ms
+[2026-08-26 14:53:59.605] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.606] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.606] [info] frame 225 合格=false
+[2026-08-26 14:53:59.613] [info] frame 225 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.615] [info] frame 225 total cost 32.8 ms
+[2026-08-26 14:53:59.640] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.641] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.641] [info] frame 226 合格=false
+[2026-08-26 14:53:59.645] [info] frame 226 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.647] [info] frame 226 total cost 29.9 ms
+[2026-08-26 14:53:59.671] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.672] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.672] [info] frame 227 合格=false
+[2026-08-26 14:53:59.676] [info] frame 227 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.678] [info] frame 227 total cost 29.4 ms
+[2026-08-26 14:53:59.702] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.703] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.703] [info] frame 228 合格=false
+[2026-08-26 14:53:59.707] [info] frame 228 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.709] [info] frame 228 total cost 29.6 ms
+[2026-08-26 14:53:59.734] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.734] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.735] [info] frame 229 合格=false
+[2026-08-26 14:53:59.738] [info] frame 229 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.741] [info] frame 229 total cost 29.8 ms
+[2026-08-26 14:53:59.765] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.766] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.766] [info] frame 230 合格=false
+[2026-08-26 14:53:59.779] [info] frame 230 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.781] [info] frame 230 total cost 39.3 ms
+[2026-08-26 14:53:59.801] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.802] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.803] [info] frame 231 合格=false
+[2026-08-26 14:53:59.806] [info] frame 231 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.809] [info] frame 231 total cost 25.6 ms
+[2026-08-26 14:53:59.832] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.833] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.833] [info] frame 232 合格=false
+[2026-08-26 14:53:59.837] [info] frame 232 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.839] [info] frame 232 total cost 28.6 ms
+[2026-08-26 14:53:59.862] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.863] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.863] [info] frame 233 合格=false
+[2026-08-26 14:53:59.870] [info] frame 233 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.872] [info] frame 233 total cost 31.9 ms
+[2026-08-26 14:53:59.894] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.895] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.895] [info] frame 234 合格=false
+[2026-08-26 14:53:59.912] [info] frame 234 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.914] [info] frame 234 total cost 40.3 ms
+[2026-08-26 14:53:59.940] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.941] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.942] [info] frame 235 合格=false
+[2026-08-26 14:53:59.948] [info] frame 235 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.951] [info] frame 235 total cost 35.3 ms
+[2026-08-26 14:53:59.977] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:53:59.978] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:53:59.978] [info] frame 236 合格=false
+[2026-08-26 14:53:59.982] [info] frame 236 | no box(cls1) detected | save=
+[2026-08-26 14:53:59.984] [info] frame 236 total cost 32.0 ms
+[2026-08-26 14:54:00.010] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.011] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.011] [info] frame 237 合格=false
+[2026-08-26 14:54:00.016] [info] frame 237 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.018] [info] frame 237 total cost 32.2 ms
+[2026-08-26 14:54:00.043] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.044] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.044] [info] frame 238 合格=false
+[2026-08-26 14:54:00.064] [info] frame 238 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.066] [info] frame 238 total cost 45.8 ms
+[2026-08-26 14:54:00.092] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.093] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.093] [info] frame 239 合格=false
+[2026-08-26 14:54:00.101] [info] frame 239 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.103] [info] frame 239 total cost 35.0 ms
+[2026-08-26 14:54:00.127] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.128] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.128] [info] frame 240 合格=false
+[2026-08-26 14:54:00.131] [info] frame 240 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.134] [info] frame 240 total cost 28.0 ms
+[2026-08-26 14:54:00.161] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.162] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.162] [info] frame 241 合格=false
+[2026-08-26 14:54:00.165] [info] frame 241 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.168] [info] frame 241 total cost 31.6 ms
+[2026-08-26 14:54:00.192] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.193] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.193] [info] frame 242 合格=false
+[2026-08-26 14:54:00.212] [info] frame 242 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.214] [info] frame 242 total cost 45.1 ms
+[2026-08-26 14:54:00.239] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.240] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.240] [info] frame 243 合格=false
+[2026-08-26 14:54:00.244] [info] frame 243 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.246] [info] frame 243 total cost 30.0 ms
+[2026-08-26 14:54:00.270] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.271] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.271] [info] frame 244 合格=false
+[2026-08-26 14:54:00.275] [info] frame 244 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.277] [info] frame 244 total cost 29.8 ms
+[2026-08-26 14:54:00.302] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.302] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.303] [info] frame 245 合格=false
+[2026-08-26 14:54:00.306] [info] frame 245 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.309] [info] frame 245 total cost 29.8 ms
+[2026-08-26 14:54:00.332] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.333] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.333] [info] frame 246 合格=false
+[2026-08-26 14:54:00.339] [info] frame 246 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.341] [info] frame 246 total cost 31.2 ms
+[2026-08-26 14:54:00.368] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.370] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.370] [info] frame 247 合格=false
+[2026-08-26 14:54:00.374] [info] frame 247 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.376] [info] frame 247 total cost 33.1 ms
+[2026-08-26 14:54:00.401] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.401] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.401] [info] frame 248 合格=false
+[2026-08-26 14:54:00.408] [info] frame 248 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.411] [info] frame 248 total cost 33.2 ms
+[2026-08-26 14:54:00.436] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.437] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.437] [info] frame 249 合格=false
+[2026-08-26 14:54:00.444] [info] frame 249 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.446] [info] frame 249 total cost 33.3 ms
+[2026-08-26 14:54:00.471] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.472] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.472] [info] frame 250 合格=false
+[2026-08-26 14:54:00.479] [info] frame 250 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.482] [info] frame 250 total cost 33.6 ms
+[2026-08-26 14:54:00.509] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.510] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.510] [info] frame 251 合格=false
+[2026-08-26 14:54:00.517] [info] frame 251 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.519] [info] frame 251 total cost 35.2 ms
+[2026-08-26 14:54:00.541] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.542] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.542] [info] frame 252 合格=false
+[2026-08-26 14:54:00.549] [info] frame 252 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.551] [info] frame 252 total cost 30.7 ms
+[2026-08-26 14:54:00.576] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.576] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.576] [info] frame 253 合格=false
+[2026-08-26 14:54:00.583] [info] frame 253 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.585] [info] frame 253 total cost 32.4 ms
+[2026-08-26 14:54:00.611] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.612] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.612] [info] frame 254 合格=false
+[2026-08-26 14:54:00.620] [info] frame 254 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.622] [info] frame 254 total cost 35.4 ms
+[2026-08-26 14:54:00.646] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.647] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.647] [info] frame 255 合格=false
+[2026-08-26 14:54:00.667] [info] frame 255 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.669] [info] frame 255 total cost 44.7 ms
+[2026-08-26 14:54:00.695] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.695] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.695] [info] frame 256 合格=false
+[2026-08-26 14:54:00.702] [info] frame 256 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.704] [info] frame 256 total cost 33.2 ms
+[2026-08-26 14:54:00.728] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.729] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.729] [info] frame 257 合格=false
+[2026-08-26 14:54:00.736] [info] frame 257 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.738] [info] frame 257 total cost 32.6 ms
+[2026-08-26 14:54:00.763] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.764] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.764] [info] frame 258 合格=false
+[2026-08-26 14:54:00.771] [info] frame 258 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.774] [info] frame 258 total cost 33.3 ms
+[2026-08-26 14:54:00.799] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.800] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.800] [info] frame 259 合格=false
+[2026-08-26 14:54:00.819] [info] frame 259 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.821] [info] frame 259 total cost 45.4 ms
+[2026-08-26 14:54:00.842] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.844] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.844] [info] frame 260 合格=false
+[2026-08-26 14:54:00.851] [info] frame 260 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.853] [info] frame 260 total cost 30.9 ms
+[2026-08-26 14:54:00.876] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.877] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.877] [info] frame 261 合格=false
+[2026-08-26 14:54:00.880] [info] frame 261 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.882] [info] frame 261 total cost 27.9 ms
+[2026-08-26 14:54:00.905] [error] [CAN-send] 发送失败(id=0x300): 网络已关闭
+[2026-08-26 14:54:00.906] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 14:54:00.906] [info] frame 262 合格=false
+[2026-08-26 14:54:00.912] [info] frame 262 | no box(cls1) detected | save=
+[2026-08-26 14:54:00.914] [info] frame 262 total cost 30.7 ms
+[2026-08-26 14:54:00.926] [info] frame 263 total cost 10.3 ms
+[2026-08-26 14:54:00.926] [info] camera: 循环退出, 共处理 264 帧, stopped=true
+[2026-08-26 15:37:57.723] [info] camera: 已关闭
+[2026-08-26 15:37:57.724] [info] image_saver: shutdown (saved=0, dropped=0, leftover=0)
+[2026-08-26 15:37:57.747] [info] [GPIO-out] DO1=HIGH (不满足)
+[2026-08-26 15:37:57.747] [info] GPIO-out: DO1 已恢复 HIGH
